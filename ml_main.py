@@ -17,30 +17,25 @@ from machine_learning.misc import zip_run_name_files
 def run_params(base_df, seed, y_column, num_of_trials, train_percent, validation_percent,
                drop_columns, paper_id_column):
 
-    # Drop rows that have NaN in y_column
-    base_df = base_df.dropna(subset=[y_column])
-
-    # Train and predict only on Aerogels
-    base_df = base_df.loc[base_df['Final Gel Type'] == "Aerogel"]
-    base_df = base_df.drop(columns=['Final Gel Type'])
-
-    # Fetch upper and lower threshold to filter data by, looking for top and bottom 3 percent
-    p = 0.03
-    upper_threshold = base_df[y_column].sort_values(ascending=True)[:-int(p * len(base_df))].max()
-    lower_threshold = base_df[y_column].sort_values(ascending=True)[int(p * len(base_df)):].min()
-
     # Drop columns to perform featurization
     base_df = base_df.drop(columns=drop_columns)
 
     # Featurize DataFrame
-    base_df = featurize(base_df, paper_id_column, bit_size=128)
+    base_df = featurize(base_df, paper_id_column, bit_size=128, drop_final_material_col=False)
 
+    # Reset the Index
     base_df = base_df.reset_index(drop=True)
 
+    # Grab material list and index
+    material_col = base_df["Final Material"]
+    base_df = base_df.drop(columns=["Final Material"])
+
+
     test_percent = 1 - train_percent - validation_percent
-    num_of_sections = ceil(1 / test_percent)
+    num_of_sections = ceil(1 / test_percent) + 1
     for i in range(num_of_sections):
 
+        # Gather what section running for test set
         start_split = round(i * test_percent * len(base_df))
         end_split = round((i + 1) * test_percent * len(base_df))
         end_split = min(len(base_df), end_split)
@@ -56,18 +51,14 @@ def run_params(base_df, seed, y_column, num_of_trials, train_percent, validation
         val_df = train_df.sample(frac=validation_percent, random_state=seed)
         train_df = train_df.drop(val_df.index)
 
+        # Grab Test df material list
+        test_df_index = test_df.index.tolist()
+        material_list = material_col.loc[material_col.index[test_df_index]].tolist()
+
         # Remove grouping column
         train_df = train_df.drop(columns=[paper_id_column])
         test_df = test_df.drop(columns=[paper_id_column])
         val_df = val_df.drop(columns=[paper_id_column])
-
-        # Remove top and bottom 3 percent
-        train_df = train_df.loc[train_df[y_column] >= lower_threshold]
-        train_df = train_df.loc[train_df[y_column] <= upper_threshold]
-        test_df = test_df.loc[test_df[y_column] >= lower_threshold]
-        test_df = test_df.loc[test_df[y_column] <= upper_threshold]
-        val_df = val_df.loc[val_df[y_column] >= lower_threshold]
-        val_df = val_df.loc[val_df[y_column] <= upper_threshold]
 
         # Get Feature Columns
         feature_list = list(train_df.columns)
@@ -95,7 +86,7 @@ def run_params(base_df, seed, y_column, num_of_trials, train_percent, validation
         n_hidden = list(range(1, 5, 1))
         n_neuron = list(range(20, 300, 20))
         drop = [0.20, 0.22, 0.24, 0.26, 0.28, 0.30]
-        epochs = 100
+        epochs = [100]
         param_grid = {
             'n_hidden': n_hidden,
             "n_neuron": n_neuron,
@@ -130,6 +121,8 @@ def run_params(base_df, seed, y_column, num_of_trials, train_percent, validation
 
         predictions = predictions.join(pva)
         predictions["Index"] = test_target.index.tolist()
+
+        predictions["Final Material"] = material_list
 
         # Dump Information about run
         date_string = datetime.now().strftime('%Y_%m_%d %H_%M_%S')
@@ -171,12 +164,31 @@ def main():
     # Parameters to cycle
     y_column = 'Surface Area m2/g'
 
-    for _ in range(1):
-        data = raw_data.copy()
+    # Drop rows that have NaN in y_column
+    raw_data = raw_data.dropna(subset=[y_column])
 
+    # Train and predict only on Aerogels
+    raw_data = raw_data.loc[raw_data['Final Gel Type'] == "Aerogel"]
+    raw_data = raw_data.drop(columns=['Final Gel Type'])
+
+    # Fetch upper and lower threshold to filter data by, looking for top and bottom 3 percent
+    p = 0.03
+    upper_threshold = raw_data[y_column].sort_values(ascending=True)[:-int(p * len(raw_data))].max()
+    lower_threshold = raw_data[y_column].sort_values(ascending=True)[int(p * len(raw_data)):].min()
+
+    # Grab part of DataFrame that is within the specified surface area range
+    raw_data = raw_data.loc[raw_data[y_column] >= lower_threshold]
+    raw_data = raw_data.loc[raw_data[y_column] <= upper_threshold]
+
+    for i in range(10):
+
+        # Shuffle df based on seed
+        df = raw_data.sample(frac=1, random_state=seed+i)
+
+        # Run parameters
         run_params(
-            base_df=raw_data,
-            seed=seed,
+            base_df=df,
+            seed=seed+i,
             y_column=y_column,
             num_of_trials=num_of_trials,
             train_percent=train_percent,

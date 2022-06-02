@@ -133,7 +133,7 @@ def fetch_si_neo4j_dataset():
 def fetch_si_ml_dataset():
     input_data = fetch_si_neo4j_dataset()
     drop_columns = ['Authors', 'Author Emails', 'Corresponding Author', 'Corresponding Author Emails',
-                    'Year', 'Cited References', "Times Cited", 'Final Material']
+                    'Year', 'Cited References', "Times Cited"]
     for column in input_data.columns:
         if "notes" in column.lower():
             drop_columns.append(column)
