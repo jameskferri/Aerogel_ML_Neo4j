@@ -15,7 +15,7 @@ def featurize_with_rdkit(df, compound_dict, bit_size):
     base_zeros = list([0] * len(base_fingerprint))
 
     for col in tqdm(list(df.columns), desc="Featurizing Dataset"):
-        if df[col].dtype == "object" and col != "Final Material":
+        if df[col].dtype == "object":
             fingerprint_matrix = []
             df_col_index = df[col].index
             for compound in df[col].tolist():
@@ -51,7 +51,7 @@ def featurize_with_rdkit(df, compound_dict, bit_size):
     return df
 
 
-def featurize(df, paper_id_column, bit_size=128, drop_final_material_col=True):
+def featurize(df, paper_id_column=None, bit_size=128):
 
     # Gather stored compound data
     raw_compounds = read_csv(Path(__file__).parent.parent / "backends/cached_compound_info.csv")
@@ -60,8 +60,10 @@ def featurize(df, paper_id_column, bit_size=128, drop_final_material_col=True):
     compound_dict = dict(zip(compounds, compounds_smiles))
 
     # Set aside grouping column data
-    group_col_data = df[paper_id_column]
-    df = df.drop(columns=[paper_id_column])
+    group_col_data = None
+    if paper_id_column is not None:
+        group_col_data = df[paper_id_column]
+        df = df.drop(columns=[paper_id_column])
 
     # Drop Ratio Columns
     for col in df:
@@ -88,15 +90,16 @@ def featurize(df, paper_id_column, bit_size=128, drop_final_material_col=True):
     # https://stackoverflow.com/questions/45312377/how-to-one-hot-encode-from-a-pandas-column-containing-a-list
     for col in df:
         if df[col].dtype == "object":
-            if col not in smiles_columns and col != "Final Material":
-                s = df[col].explode()
-                s = crosstab(s.index, s)
-                new_sub_cols = []
-                for sub_col in s.columns:
-                    new_sub_cols.append(col + ": " + sub_col)
-                s.columns = new_sub_cols
-                df = df.join(s)
-                df = df.drop(columns=[col])
+            # if col not in smiles_columns:
+                # s = df[col].explode()
+                # s = crosstab(s.index, s)
+                # new_sub_cols = []
+                # for sub_col in s.columns:
+                #     new_sub_cols.append(col + ": " + sub_col)
+                # s.columns = new_sub_cols
+                # df = df.join(s)
+                # df = df.drop(columns=[col])
+            df = df.drop(columns=[col])
 
     # Featurize compounds in each SMILES columns with a RDkit fingerprint
     df = featurize_with_rdkit(df, compound_dict, bit_size=bit_size)
@@ -120,13 +123,10 @@ def featurize(df, paper_id_column, bit_size=128, drop_final_material_col=True):
 
     # Replace NaN with mean of other columns
     for col in df:
-        if col != "Final Material":
-            df[col] = df[col].fillna(df[col].mean())
+        df[col] = df[col].fillna(df[col].mean())
 
     # Re-add grouping column data
-    df = df.join(group_col_data)
-
-    if drop_final_material_col:
-        df = df.drop(columns=["Final Material"])
+    if paper_id_column is not None:
+        df = df.join(group_col_data)
 
     return df

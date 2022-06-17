@@ -43,8 +43,8 @@ def tune(train_features, train_target, val_features, val_target, epochs,
 
         epochs_i = choice(epochs)
         n_hidden_layers_i = choice(n_hidden_layers)
-        n_neurons_i = choices(n_neurons, k=n_hidden_layers_i)
-        dropout_i = choices(dropout, k=n_hidden_layers_i)
+        n_neurons_i = n_neurons
+        dropout_i = dropout
         params = dict(
             epochs=epochs_i,
             n_hidden_layers=n_hidden_layers_i,
