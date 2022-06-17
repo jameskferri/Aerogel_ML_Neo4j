@@ -2,6 +2,7 @@ from os import urandom
 from datetime import datetime
 from json import dump
 from math import ceil
+from time import sleep
 
 from pandas import DataFrame
 from sklearn.preprocessing import StandardScaler
@@ -14,36 +15,33 @@ from machine_learning.graph import pva_graph
 from machine_learning.misc import zip_run_name_files
 
 
-def run_params(base_df, seed, y_column, num_of_trials, train_percent, validation_percent,
-               drop_columns, paper_id_column):
-
-    # Drop rows that have NaN in y_column
-    base_df = base_df.dropna(subset=[y_column])
-
-    # Train and predict only on Aerogels
-    base_df = base_df.loc[base_df['Final Gel Type'] == "Aerogel"]
-    base_df = base_df.drop(columns=['Final Gel Type'])
-
-    # Fetch upper and lower threshold to filter data by, looking for top and bottom 3 percent
-    p = 0.03
-    upper_threshold = base_df[y_column].sort_values(ascending=True)[:-int(p * len(base_df))].max()
-    lower_threshold = base_df[y_column].sort_values(ascending=True)[int(p * len(base_df)):].min()
-
-    # Drop columns to perform featurization
-    base_df = base_df.drop(columns=drop_columns)
+def run_params(base_df, seed, y_column, num_of_trials, train_percent, validation_percent):
 
     # Featurize DataFrame
-    base_df = featurize(base_df, paper_id_column, bit_size=128)
+    material_col = base_df["Final Material"]
 
-    base_df = base_df.reset_index(drop=True)
+    base_df = base_df.drop(columns=["Final Material"])
+    base_df = featurize(base_df, paper_id_column=None, bit_size=128)
 
-    test_percent = 1 - train_percent - validation_percent
-    num_of_sections = ceil(1 / test_percent)
-    for i in range(num_of_sections):
+    test_percent = 1 - train_percent
 
-        start_split = round(i * test_percent * len(base_df))
-        end_split = round((i + 1) * test_percent * len(base_df))
-        end_split = min(len(base_df), end_split)
+    # TODO think of a better way to do this
+    # Calculate start and stop indexes
+    num_test_files = int(len(base_df) * test_percent)
+    groups = []
+    for i in range(len(base_df)):
+        if i % num_test_files == 0:
+            groups.append(i)
+    sections = []
+    for i in range(len(groups) - 1):
+        sections.append([groups[i], groups[i + 1]])
+    if groups[-1] != len(base_df):
+        sections.append([groups[-1], len(base_df)])
+
+    for i, section in enumerate(sections):
+
+        start_split = section[0]
+        end_split = section[1]
 
         if end_split - start_split <= 0:
             break
@@ -56,18 +54,8 @@ def run_params(base_df, seed, y_column, num_of_trials, train_percent, validation
         val_df = train_df.sample(frac=validation_percent, random_state=seed)
         train_df = train_df.drop(val_df.index)
 
-        # Remove grouping column
-        train_df = train_df.drop(columns=[paper_id_column])
-        test_df = test_df.drop(columns=[paper_id_column])
-        val_df = val_df.drop(columns=[paper_id_column])
-
-        # Remove top and bottom 3 percent
-        train_df = train_df.loc[train_df[y_column] >= lower_threshold]
-        train_df = train_df.loc[train_df[y_column] <= upper_threshold]
-        test_df = test_df.loc[test_df[y_column] >= lower_threshold]
-        test_df = test_df.loc[test_df[y_column] <= upper_threshold]
-        val_df = val_df.loc[val_df[y_column] >= lower_threshold]
-        val_df = val_df.loc[val_df[y_column] <= upper_threshold]
+        # Grab Final Materials from test set
+        test_materials = material_col.loc[test_df.index].tolist()
 
         # Get Feature Columns
         feature_list = list(train_df.columns)
@@ -92,10 +80,10 @@ def run_params(base_df, seed, y_column, num_of_trials, train_percent, validation
         val_target = target_scaler.transform(val_target.reshape(-1, 1))
 
         # Keras Parameters
-        n_hidden = list(range(1, 5, 1))
-        n_neuron = list(range(20, 300, 20))
-        drop = [0.20, 0.22, 0.24, 0.26, 0.28, 0.30]
-        epochs = 100
+        n_hidden = [2]
+        n_neuron = [80, 250]
+        drop = [0.3, 0]
+        epochs = [100]
         param_grid = {
             'n_hidden': n_hidden,
             "n_neuron": n_neuron,
@@ -116,6 +104,13 @@ def run_params(base_df, seed, y_column, num_of_trials, train_percent, validation
             predictions_j = target_scaler.inverse_transform(predictions_j.reshape(-1, 1)).reshape(-1, )
             predictions[f"predictions_{j}"] = predictions_j
 
+        # # ### DEV SECTION ### #
+        # predictions = DataFrame()
+        # for j in range(5):
+        #     predictions_j = test_target.tolist()
+        #     predictions[f"predictions_{j}"] = predictions_j
+        # # ### END DEV SECTION ### #
+
         # Gather PVA data
         pva = DataFrame()
         pva["actual"] = test_target.to_numpy()
@@ -123,13 +118,19 @@ def run_params(base_df, seed, y_column, num_of_trials, train_percent, validation
         pva["pred_std"] = predictions.std(axis=1)
 
         # Scale PVA for stats
-        scaled_pva = (pva - pva.min().min()) / (pva.max().max() - pva.min().min())
+        scaled_pva = pva.copy()
+        for col in scaled_pva:
+            if pva[col].max() - pva[col].min() == 0:
+                scaled_pva[col] = 0
+            else:
+                scaled_pva[col] = (pva[col] - pva[col].min()) / (pva[col].max() - pva[col].min())
         mse = mean_squared_error(scaled_pva["actual"], scaled_pva["pred_avg"]).mean()
         rmse = mse ** (1 / 2)
         r2 = r2_score(scaled_pva["actual"], scaled_pva["pred_avg"]).mean()
 
         predictions = predictions.join(pva)
         predictions["Index"] = test_target.index.tolist()
+        predictions["Final Material"] = test_materials
 
         # Dump Information about run
         date_string = datetime.now().strftime('%Y_%m_%d %H_%M_%S')
@@ -151,6 +152,8 @@ def run_params(base_df, seed, y_column, num_of_trials, train_percent, validation
         pva_graph(scaled_pva, r2, mse, rmse, run_name)
         zip_run_name_files(run_name)
 
+        sleep(1)
+
 
 def main():
     seed = int.from_bytes(urandom(3), "big")  # Generate an actual random number
@@ -158,21 +161,42 @@ def main():
     raw_data.to_csv('dev.csv')
 
     # General Properties for Machine Learning
-    num_of_trials = 100
+    num_of_trials = 1
     train_percent = 0.8
     validation_percent = 0.1  # Note, this is the percent of the train set used for validation
 
     # General Columns
     drop_columns = ['Porosity', 'Porosity %', 'Pore Volume cm3/g', 'Average Pore Diameter nm',
                     'Bulk Density g/cm3', 'Young Modulus MPa', 'Crystalline Phase',
-                    'Average Pore Size nm', 'Thermal Conductivity W/mK', 'Gelation Time mins']
-    paper_id_column = 'Title'
+                    'Average Pore Size nm', 'Thermal Conductivity W/mK', 'Gelation Time mins', 'Title']
 
     # Parameters to cycle
     y_column = 'Surface Area m2/g'
 
-    for _ in range(1):
-        data = raw_data.copy()
+    # Drop rows that have NaN in y_column
+    raw_data = raw_data.dropna(subset=[y_column])
+
+    # Train and predict only on Aerogels
+    raw_data = raw_data.loc[raw_data['Final Gel Type'] == "Aerogel"]
+    raw_data = raw_data.drop(columns=['Final Gel Type'])
+
+    # Fetch upper and lower threshold to filter data by, looking for top and bottom 3 percent
+    p = 0.05
+    upper_threshold = raw_data[y_column].sort_values(ascending=True)[:-int(p * len(raw_data))].max()
+    lower_threshold = raw_data[y_column].sort_values(ascending=True)[int(p * len(raw_data)):].min()
+
+    # Remove top and bottom 3 percent
+    raw_data = raw_data.loc[raw_data[y_column] >= lower_threshold]
+    # raw_data = raw_data.loc[raw_data[y_column] <= upper_threshold]
+   
+    # Drop columns to perform featurization
+    raw_data = raw_data.drop(columns=drop_columns)
+
+    for _ in range(10):
+
+        # Shuffle DataFrame
+        raw_data = raw_data.sample(frac=1)
+        raw_data = raw_data.reset_index(drop=True)
 
         run_params(
             base_df=raw_data,
@@ -181,8 +205,6 @@ def main():
             num_of_trials=num_of_trials,
             train_percent=train_percent,
             validation_percent=validation_percent,
-            drop_columns=drop_columns,
-            paper_id_column=paper_id_column,
         )
 
 
