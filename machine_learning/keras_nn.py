@@ -29,7 +29,7 @@ def build_estimator(params):
 
 
 def tune(train_features, train_target, val_features, val_target, epochs,
-         n_hidden_layers, n_neurons, dropout, num_of_trials):
+         n_hidden_layers, neurons, dropouts, num_of_trials):
 
     models = {}
     val_mses = []
@@ -43,13 +43,18 @@ def tune(train_features, train_target, val_features, val_target, epochs,
 
         epochs_i = choice(epochs)
         n_hidden_layers_i = choice(n_hidden_layers)
-        n_neurons_i = n_neurons
-        dropout_i = dropout
+
+        neurons_i = []
+        dropouts_i = []
+        for _ in range(n_hidden_layers_i):
+            neurons_i.append(choice(neurons))
+            dropouts_i.append(choice(dropouts))
+
         params = dict(
             epochs=epochs_i,
             n_hidden_layers=n_hidden_layers_i,
-            n_neurons=n_neurons_i,
-            dropout=dropout_i,
+            n_neurons=neurons_i,
+            dropout=dropouts_i,
         )
 
         estimator = build_estimator(params)

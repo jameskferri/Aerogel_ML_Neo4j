@@ -4,11 +4,12 @@ from json import dump
 from math import ceil
 from time import sleep
 
+from numpy import arange
 from pandas import DataFrame
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, r2_score
 
-from backends.data_cleanup import fetch_si_ml_dataset
+from backends.data_cleanup import fetch_si_ml_dataset, fetch_zr_ml_dataset
 from machine_learning.featurize import featurize
 from machine_learning.keras_nn import tune, build_estimator
 from machine_learning.graph import pva_graph
@@ -80,19 +81,19 @@ def run_params(base_df, seed, y_column, num_of_trials, train_percent, validation
         val_target = target_scaler.transform(val_target.reshape(-1, 1))
 
         # Keras Parameters
-        n_hidden = [2]
-        n_neuron = [80, 250]
-        drop = [0.3, 0]
+        n_hidden = [1, 2, 3, 4, 5]
+        neurons = list(range(10, 200, 10))
+        drop = list(arange(0.1, 0.3, 0.02))
         epochs = [100]
         param_grid = {
             'n_hidden': n_hidden,
-            "n_neuron": n_neuron,
+            "neurons": neurons,
             'drop': drop,
         }
 
         # Hyper-Tune the model and fetch the best parameters
         best_params = tune(train_features, train_target, val_features, val_target, epochs=epochs,
-                           n_hidden_layers=n_hidden, n_neurons=n_neuron, dropout=drop,
+                           n_hidden_layers=n_hidden, neurons=neurons, dropouts=drop,
                            num_of_trials=num_of_trials)
 
         # Gather predicted values on estimator
@@ -143,6 +144,7 @@ def run_params(base_df, seed, y_column, num_of_trials, train_percent, validation
             "num_of_trials": num_of_trials,
             "param_gird": param_grid,
             "keras_best_params": best_params,
+            "dataset": "Zr"
         }
         with open(f"{run_name}_run_params.json", "w") as f:
             dump(run_info, f)
@@ -161,7 +163,7 @@ def main():
     raw_data.to_csv('dev.csv')
 
     # General Properties for Machine Learning
-    num_of_trials = 1
+    num_of_trials = 100
     train_percent = 0.8
     validation_percent = 0.1  # Note, this is the percent of the train set used for validation
 

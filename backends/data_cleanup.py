@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from pandas import DataFrame, read_excel, to_numeric
-from numpy import nan
+from numpy import nan, isnan
 
 
 def df_col_range_to_mean(df: DataFrame):
@@ -72,6 +72,18 @@ def cleanup(df: DataFrame, non_mut_cols: list = None):
     return df
 
 
+def _parse(x):
+
+    if isinstance(x, float) and isnan(x):
+        return "Xerogel"
+
+    aerogels_types = ["supercritical drying", "freeze drying", "ambient pressure drying"]
+    if x.lower() in aerogels_types:
+        return "Aerogel"
+    else:
+        return "Xerogel"
+
+
 def si_aerogel_cleanup(df: DataFrame):
     for col in df.columns:
         if "Pressure" in col:
@@ -95,12 +107,6 @@ def si_aerogel_cleanup(df: DataFrame):
     df.columns = new_columns
 
     # Determine weather or not Aerogel is a Xerogel or not
-    def _parse(x):
-        aerogels_types = ["Supercritical Drying", "Freeze Drying", "Ambient Pressure Drying"]
-        if x in aerogels_types:
-            return "Aerogel"
-        else:
-            return "Xerogel"
     df['Final Gel Type'] = df['Drying Method'].apply(_parse)
 
     df = df.replace({None: nan})
@@ -141,6 +147,36 @@ def fetch_si_ml_dataset():
     return input_data
 
 
+def fetch_zr_neo4j_dataset():
+    input_data = read_excel(Path(__file__).parent / "raw_zr_aerogels.xlsx", sheet_name="Comprehensive")
+
+    # Gather columns to not delimit by commas
+    holding_columns = ['Author', 'Year', 'Cited References (#)', "Times Cited (#)", 'Final Material']
+    for column in input_data.columns:
+        if "notes" in column.lower() or 'title' in column.lower():
+            holding_columns.append(column)
+
+    input_data = cleanup(df=input_data, non_mut_cols=holding_columns)
+    input_data['Final Gel Type'] = input_data['Drying Method'].apply(_parse)
+    return input_data
+
+
+def fetch_zr_ml_dataset():
+    input_data = read_excel(Path(__file__).parent / "raw_zr_aerogels.xlsx", sheet_name="Comprehensive")
+
+    # Gather columns to not delimit by commas
+    drop_columns = ['Author', 'Year', 'Cited References (#)', "Times Cited (#)", 'Final Material']
+    for column in input_data.columns:
+        if "notes" in column.lower() or 'title' in column.lower():
+            drop_columns.append(column)
+
+    input_data = cleanup(df=input_data, non_mut_cols=drop_columns)
+    input_data = input_data.drop(columns=drop_columns)
+    input_data['Final Gel Type'] = input_data['Drying Method'].apply(_parse)
+    return input_data
+
+
 if __name__ == "__main__":
-    print(fetch_si_ml_dataset())
-    print(fetch_si_neo4j_dataset())
+    d = fetch_zr_ml_dataset()
+    for i, r in d.iterrows():
+        print(r["Drying Method"], r["Final Gel Type"])
