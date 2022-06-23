@@ -1,0 +1,582 @@
+#V-0.01
+
+# This file is just the skeleton of the schema file, and just shows the basic nodes and relationships
+# Do not insert this file into a Neo4j Database, it will run slow and give nothing useful
+# Core nodes are created for every Aerogel
+
+### Final Gel ###
+
+Node|final_gel|FinalGel  # Core Node
+    --final_material: Final Material *
+    -aerogel_type: Final Gel Type  # TODO Add calculated types in spreadsheet
+    -hydrolysis_time: Hydrolysis Time hr
+    -pH_final_sol: pH final sol
+    -pore_volume: Pore Volume cm3/g
+    -average_pore_diameter: Average Pore Diameter nm
+    -average_pore_size: Average Pore Size nm
+    -surface_area: Surface Area m2/g
+    -bulk_density: Bulk Density g/cm3
+    -young_modulus: Young Modulus MPa
+    -thermal_conductivity: Thermal Conductivity W/mK
+    -anna_notes: Anna's Notes
+    -sol_notes: Sol Notes
+    -gelation_and_washing_notes: Gelation/Washing Notes
+    -general_notes: Notes
+    -gelation_time: Gelation Time mins
+    -combined_sol_stir_time: Combined Sol Stir Time min
+    -combined_sol_standing_time: Combined Sol 2 Standing time hr
+
+
+### Crystalline Phase###
+
+Node|crystalline_phase|CrystallinePhase
+    --name: Crystalline Phase *
+Rel|final_gel->crystalline_phase|has_crystalline_phase
+
+
+### Porosity ###
+
+Node|porosity|Porosity
+    --name: Porosity *
+Rel|final_gel->porosity|has_porosity
+    --porosity_percent: Porosity %
+
+
+### lit info ###
+
+Node|lit_info|LitInfo  # Core Node
+    --title: Title *
+    -year: Year
+    -cited_references: Cited References
+    -times_cited: Times Cited
+Rel|final_gel->lit_info|from
+
+Node|author_0|Author
+    --name: Authors 0 *
+    -email: Author Emails 0
+    -corresponding: {False}
+Rel|lit_info->author_0|written_by
+
+Node|author_1|Author
+    --name: Authors 1 *
+    -email: Author Emails 1
+    -corresponding: {False}
+Rel|lit_info->author_1|written_by
+
+Node|author_2|Author
+    --name: Authors 2 *
+    -email: Author Emails 2
+    -corresponding: {False}
+Rel|lit_info->author_2|written_by
+
+Node|author_3|Author
+    --name: Authors 3 *
+    -email: Author Emails 3
+    -corresponding: {False}
+Rel|lit_info->author_3|written_by
+
+Node|author_4|Author
+    --name: Authors 4 *
+    -email: Author Emails 4
+    -corresponding: {False}
+Rel|lit_info->author_4|written_by
+
+Node|author_5|Author
+    --name: Authors 5 *
+    -email: Author Emails 5
+    -corresponding: {False}
+Rel|lit_info->author_5|written_by
+
+Node|author_6|Author
+    --name: Authors 6 *
+    -email: Author Emails 6
+    -corresponding: {False}
+Rel|lit_info->author_6|written_by
+
+Node|author_7|Author
+    --name: Authors 7 *
+    -corresponding: {False}
+Rel|lit_info->author_7|written_by
+
+Node|author_8|Author
+    --name: Authors 8 *
+    -corresponding: {False}
+Rel|lit_info->author_8|written_by
+
+Node|author_9|Author
+    --name: Authors 9 *
+    -corresponding: {False}
+Rel|lit_info->author_9|written_by
+
+Node|corresponding_author_0|Author
+    --name: Corresponding Author 0 *
+    -email: Corresponding Author Emails 0
+    -corresponding: {True}
+Rel|lit_info->corresponding_author_0|written_by
+
+Node|corresponding_author_1|Author
+    --name: Corresponding Author 1 *
+    -email: Corresponding Author Emails 1
+    -corresponding: {True}
+Rel|lit_info->corresponding_author_1|written_by
+
+Node|corresponding_author_2|Author
+    --name: Corresponding Author 2 *
+    -email: Corresponding Author Emails 2
+    -corresponding: {True}
+Rel|lit_info->corresponding_author_2|written_by
+
+
+### Formation Method ###
+
+Node|formation_method_0|FormationMethod
+    --name: Formation Method 0 *
+Rel|final_gel->formation_method_0|formed_by
+
+Node|formation_method_1|FormationMethod
+    --name: Formation Method 1 *
+Rel|final_gel->formation_method_0|formed_by
+
+
+### Sols ###
+
+Node|sol_1|Sol  # Core Node
+    --final_material: Final Material *
+    -stir_time: Sol 1 Stir Time min
+    -stir_rate: Sol 1 Stir rate rpm
+    -standing_time: Sol 1 Standing time hr
+    -temp: Sol 1 Temp C
+    -pH: pH Sol 1
+Rel|final_gel->sol_1|uses_sol
+    -sol_number: {1}
+
+Node|sol_1_solvent_0|Solvent
+    --name: Sol 1 0 *
+Rel|sol_1->sol_1_solvent_0|uses_solvent
+
+Node|sol_1_solvent_1|Solvent
+    --name: Sol 1 1 *
+Rel|sol_1->sol_1_solvent_1|uses_solvent
+
+Node|sol_1_solvent_2|Solvent
+    --name: Sol 1 2 *
+Rel|sol_1->sol_1_solvent_2|uses_solvent
+
+Node|sol_1_solvent_3|Solvent
+    --name: Sol 1 3 *
+Rel|sol_1->sol_1_solvent_0|uses_solvent
+
+Node|sol_1_solvent_4|Solvent
+    --name: Sol 1 4 *
+Rel|sol_1->sol_1_solvent_4|uses_solvent
+
+Node|sol_1_solvent_5|Solvent
+    --name: Sol 1 5 *
+Rel|sol_1->sol_1_solvent_5|uses_solvent
+
+Node|sol_1_solvent_6|Solvent
+    --name: Sol 1 6 *
+Rel|sol_1->sol_1_solvent_6|uses_solvent
+
+Node|sol_1_solvent_7|Solvent
+    --name: Sol 1 7 *
+Rel|sol_1->sol_1_solvent_7|uses_solvent
+
+Node|sol_1_solvent_8|Solvent
+    --name: Sol 1 8 *
+Rel|sol_1->sol_1_solvent_8|uses_solvent
+
+Node|sol_1_solvent_9|Solvent
+    --name: Sol 1 9 *
+Rel|sol_1->sol_1_solvent_9|uses_solvent
+
+Node|sol_2|Sol  # Core Node
+    --final_material: Final Material *
+    -stir_rate: Sol 2 Stir rate rpm
+    -stir_time: Sol 2 Stir Time min
+    -temp: Sol 2 Temp C
+    -pH: pH Sol 2
+Rel|final_gel->sol_2|uses_sol
+    -sol_number: {2}
+
+Node|sol_2_solvent_0|Solvent
+    --name: Sol 2 0 *
+Rel|sol_2->sol_2_solvent_0|uses_solvent
+
+Node|sol_2_solvent_1|Solvent
+    --name: Sol 2 1 *
+Rel|sol_2->sol_2_solvent_1|uses_solvent
+
+Node|sol_2_solvent_2|Solvent
+    --name: Sol 2 2 *
+Rel|sol_2->sol_2_solvent_2|uses_solvent
+
+Node|sol_2_solvent_3|Solvent
+    --name: Sol 2 3 *
+Rel|sol_2->sol_2_solvent_3|uses_solvent
+
+
+### Gelation ###
+
+Node|gelation|Gelation  # Core Node
+    --final_material: Final Material *
+    -temp: Gelation Temp C
+    -pressure: Gelation Pressure MPa
+Rel|final_gel->gelation|gel_formed_by
+
+Node|gelation_agent|GelationAgent
+    --agent: Gelation Agent *
+Rel|gelation->gelation_agent|uses_gelation_agent
+    -concentration: Gelation Agent M
+
+
+### Drying Method ###
+
+Node|drying_steps|DryingSteps  # Core Node
+    --final_gel: Final Material *
+    -notes: Drying Notes  # TODO add max and min temperature in drying steps as properties here
+Rel|final_gel->drying_steps|dried_by
+
+Node|drying_solvent_1|Solvent
+    --name: Drying Solvent 0*
+Rel|drying_steps->drying_solvent_1|uses_drying_solvent
+
+Node|drying_solvent_2|Solvent
+    --name: Drying Solvent 1*
+Rel|drying_steps->drying_solvent_2|uses_drying_solvent
+
+Node|drying_method_1|DryingMethod
+    --method: Drying Method *
+Rel|drying_steps->drying_method_1|uses_drying_method
+    -step: {1}
+    -temp: Drying Temp C
+    -pressure: Drying Pressure MPa
+    -time: Drying Time hrs
+
+Node|drying_method_2|DryingMethod
+    --method: Drying Method 2 *
+Rel|drying_steps->drying_method_2|uses_drying_method
+    -step: {2}
+    -temp: Drying Temp 2 C
+    -pressure: Drying Pressure 2 MPa
+    -time: Drying Time 2 hrs
+
+Node|drying_atmosphere_2|Atmosphere
+    --name: Drying Atmosphere 2 *
+Rel|drying_steps->drying_atmosphere_2|uses_drying_atmosphere
+    -step: {2}
+
+Node|drying_method_3|DryingMethod
+    --method: Drying Method 3 *
+Rel|drying_steps->drying_method_3|uses_drying_method
+    -step: {3}
+    -temp: Drying Temp 3 C
+    -pressure: Drying Pressure 3 MPa
+    -time: Drying Time 3 hrs
+
+Node|drying_atmosphere_3|Atmosphere
+    --name: Drying Atmosphere 3 *
+Rel|drying_steps->drying_atmosphere_3|uses_drying_atmosphere
+    -step: {3}
+
+Node|drying_method_4|DryingMethod
+    --method: Drying Method 4 *
+Rel|drying_steps->drying_method_4|uses_drying_method
+    -step: {4}
+    -temp: Drying Temp 4 C
+    -pressure: Drying Pressure 4 MPa
+    -time: Drying Time 4 hrs
+
+Node|drying_method_5|DryingMethod
+    --method: Drying Method 5 *
+Rel|drying_steps->drying_method_5|uses_drying_method
+    -step: {5}
+    -temp: Drying Temp 5 C
+    -pressure: Drying Pressure 5 MPa
+    -time: Drying Time 5 hrs
+
+
+### Sintering ###
+
+Node|sintering|Sintering
+    --final_material: Final Material *
+    -atmosphere: Sintering Atmosphere
+    -temp: Sintering Temp C
+    -time: Sintering Time min
+    -ramp_rate: Ramp Rate C/min
+    -notes: Sintering Notes
+Rel|final_gel->sintering|sintered_by
+
+
+### Washing Steps ###
+
+Node|washing_steps|WashingSteps  # Core Node
+    --final_material: Final Material *
+    -wash_times_step_1: Wash Times 1
+    -duration_step_1: Wash Duration 1 days
+    -temp_step_1:  Wash Temp 1 C
+    -wash_times_step_2: Wash Times 2
+    -duration_step_2: Wash Duration 2 days
+    -temp_step_2:  Wash Temp 2 C
+    -wash_times_step_3: Wash Times 3
+    -duration_step_3: Wash Duration 3 days
+    -temp_step_3:  Wash Temp 3 C
+    -wash_times_step_4: Wash Times 4
+    -duration_step_4: Wash Duration 4 days
+    -temp_step_4:  Wash Temp 4 C
+    -wash_times_step_5: Wash Times 5
+    -duration_step_5: Wash Duration 5 days
+    -temp_step_5:  Wash Temp 5 C
+Rel|final_gel->washing_steps|uses_washing_steps
+
+Node|washing_solvent_1_0|Solvent
+    --name: Wash Solvent 1 0 *
+Rel|washing_steps->washing_solvent_1_0|uses_washing_solvent
+    -step: {1}
+
+Node|washing_solvent_1_1|Solvent
+    --name: Wash Solvent 1 1 *
+Rel|washing_steps->washing_solvent_1_1|uses_washing_solvent
+    -step: {1}
+
+Node|washing_solvent_1_2|Solvent
+    --name: Wash Solvent 1 2 *
+Rel|washing_steps->washing_solvent_1_2|uses_washing_solvent
+    -step: {1}
+
+Node|washing_solvent_1_3|Solvent
+    --name: Wash Solvent 1 3 *
+Rel|washing_steps->washing_solvent_1_3|uses_washing_solvent
+    -step: {1}
+
+Node|washing_solvent_1_4|Solvent
+    --name: Wash Solvent 1 4 *
+Rel|washing_steps->washing_solvent_1_4|uses_washing_solvent
+    -step: {1}
+
+Node|washing_solvent_2_0|Solvent
+    --name: Wash Solvent 2 0 *
+Rel|washing_steps->washing_solvent_2_0|uses_washing_solvent
+    -step: {2}
+
+Node|washing_solvent_2_1|Solvent
+    --name: Wash Solvent 2 1 *
+Rel|washing_steps->washing_solvent_2_1|uses_washing_solvent
+    -step: {2}
+
+Node|washing_solvent_2_2|Solvent
+    --name: Wash Solvent 2 2 *
+Rel|washing_steps->washing_solvent_2_2|uses_washing_solvent
+    -step: {2}
+
+Node|washing_solvent_3_0|Solvent
+    --name: Wash Solvent 3 0 *
+Rel|washing_steps->washing_solvent_3_0|uses_washing_solvent
+    -step: {3}
+
+Node|washing_solvent_3_1|Solvent
+    --name: Wash Solvent 3 1 *
+Rel|washing_steps->washing_solvent_3_1|uses_washing_solvent
+    -step: {3}
+
+Node|washing_solvent_3_2|Solvent
+    --name: Wash Solvent 3 2 *
+Rel|washing_steps->washing_solvent_3_2|uses_washing_solvent
+    -step: {3}
+
+Node|washing_solvent_3_3|Solvent
+    --name: Wash Solvent 3 3 *
+Rel|washing_steps->washing_solvent_3_3|uses_washing_solvent
+    -step: {3}
+
+Node|washing_solvent_4_0|Solvent
+    --name: Wash Solvent 4 0 *
+Rel|washing_steps->washing_solvent_4_0|uses_washing_solvent
+    -step: {4}
+
+Node|washing_solvent_4_1|Solvent
+    --name: Wash Solvent 4 1 *
+Rel|washing_steps->washing_solvent_4_1|uses_washing_solvent
+    -step: {4}
+
+Node|washing_solvent_4_2|Solvent
+    --name: Wash Solvent 4 2 *
+Rel|washing_steps->washing_solvent_4_2|uses_washing_solvent
+    -step: {4}
+
+Node|washing_solvent_4_3|Solvent
+    --name: Wash Solvent 4 3 *
+Rel|washing_steps->washing_solvent_4_3|uses_washing_solvent
+    -step: {4}
+
+Node|washing_solvent_5_0|Solvent
+    --name: Wash Solvent 5 0 *
+Rel|washing_steps->washing_solvent_5_0|uses_washing_solvent
+    -step: {5}
+
+Node|washing_solvent_5_1|Solvent
+    --name: Wash Solvent 5 1 *
+Rel|washing_steps->washing_solvent_5_1|uses_washing_solvent
+    -step: {5}
+
+
+### Aging Steps ###
+
+Node|aging_step_1|AgingStep  # Core Node
+    --final_material: Final Material *
+    -step: {1}
+    -temp: Aging Temp C
+    -time: Aging Time hrs
+Rel|final_gel->aging_step_1|uses_aging_steps
+
+Node|aging_solvent_1_0|Solvent
+    --name: Aging Conditions 0 *
+    -step: {1}
+Rel|aging_step_1->aging_solvent_1_0|uses_aging_solvent
+
+Node|aging_solvent_1_1|Solvent
+    --name: Aging Conditions 1 *
+    -step: {1}
+Rel|aging_step_1->aging_solvent_1_1|uses_aging_solvent
+
+Node|aging_step_2|AgingStep  # Core Node
+    --final_material: Final Material *
+    -step: {2}
+    -temp: Aging Temp 2 C
+    -time: Aging Time 2 hrs
+Rel|final_gel->aging_step_2|uses_aging_steps
+
+Node|aging_solvent_2_0|Solvent
+    --name: Aging Conditions 2 0 *
+    -step: {2}
+Rel|aging_step_2->aging_solvent_2_0|uses_aging_solvent
+
+Node|aging_solvent_2_1|Solvent
+    --name: Aging Conditions 2 1 *
+    -step: {2}
+Rel|aging_step_2->aging_solvent_2_1|uses_aging_solvent
+
+Node|aging_solvent_2_2|Solvent
+    --name: Aging Conditions 2 2 *
+    -step: {2}
+Rel|aging_step_2->aging_solvent_2_2|uses_aging_solvent
+
+
+### Start parameter nodes ###
+
+Node|si_precursor|SiPrecursor
+    --name: Si Precursor *
+Rel|final_gel->si_precursor|uses_si_precursor
+    -concentration: Si Precursor Concentration M
+    -additional_precursor: {False}
+
+Node|addition_si_co_precursor_0|SiPrecursor  # TODO add volume ratios
+    --name: Additional Si Co-Precursors 0 *
+Rel|final_gel->addition_si_co_precursor_0|uses_si_precursor
+    -concentration: Si Co-Precursor Concentration M 0
+    -additional_precursor: {True}
+
+Node|addition_si_co_precursor_1|SiPrecursor
+    --name: Additional Si Co-Precursors 1 *
+Rel|final_gel->addition_si_co_precursor_1|uses_si_precursor
+    -concentration: Si Co-Precursor Concentration M 1
+    -additional_precursor: {True}
+
+Node|addition_si_co_precursor_2|SiPrecursor
+    --name: Additional Si Co-Precursors 2 *
+Rel|final_gel->addition_si_co_precursor_2|uses_si_precursor
+    -concentration: Si Co-Precursor Concentration M 2
+    -additional_precursor: {True}
+
+Node|hybrid_si_precursor_0|HybridPrecursor
+    --name: Hybrid Aerogel Co-Precursor 0 *
+Rel|final_gel->hybrid_si_precursor_0|uses_hybrid_precursor
+    -concentration: Co-Precursor Concentration M
+
+Node|hybrid_si_precursor_1|HybridPrecursor
+    --name: Hybrid Aerogel Co-Precursor 1 *
+Rel|final_gel->hybrid_si_precursor_1|uses_hybrid_precursor
+
+Node|dopant_0|Dopant
+    --name: Dopant 0 *
+Rel|final_gel->dopant_0|uses_dopant
+    -concentration: Dopant Concentration M
+
+Node|dopant_1|Dopant
+    --name: Dopant 1 *
+Rel|final_gel->dopant_1|uses_dopant
+
+Node|dopant_2|Dopant
+    --name: Dopant 2 *
+Rel|final_gel->dopant_2|uses_dopant
+
+Node|dopant_3|Dopant
+    --name: Dopant 3 *
+Rel|final_gel->dopant_3|uses_dopant
+
+Node|dopant_4|Dopant
+    --name: Dopant 4 *
+Rel|final_gel->dopant_4|uses_dopant
+
+Node|solvent_1|Solvent
+    --name: Solvent 1 *
+Rel|final_gel->solvent_1|uses_base_solvent
+    -concentration: Solvent 1 Concentration M
+    -additional_solvent: {False}
+
+Node|solvent_2|Solvent
+    --name: Solvent 2 *
+Rel|final_gel->solvent_2|uses_base_solvent
+    -concentration: Solvent 2 Concentration M
+    -additional_solvent: {False}
+
+Node|additional_solvent|Solvent
+    --name: Additional Solvents *
+Rel|final_gel->additional_solvent|uses_base_solvent
+    -additional_solvent: {True}
+    -concentration: Additional Solvents Concentrations M
+
+Node|acid_catalyst|AcidCatalyst
+    --name: Acid Catalyst *
+Rel|final_gel->acid_catalyst|uses_acid_catalyst
+    -initial_concentration: Acid Catalyst Initial Concentration M
+    -concentration_in_sol: Acid Catalyst concentration in SolM
+
+Node|base_catalyst_0|BaseCatalyst
+    --name: Base Catalyst 0 *
+Rel|final_gel->base_catalyst_0|uses_base_catalyst
+    -initial_concentration: Base Catalyst Initial ConcentrationM
+    -concentration_in_sol: Base Catalyst concentration in Sol M
+
+Node|base_catalyst_1|BaseCatalyst
+    --name: Base Catalyst 1 *
+Rel|final_gel->base_catalyst_1|uses_base_catalyst
+
+Node|modifier_0|Modifier  # TODO add molar ratios and volume ratios
+    --name: Modifier 0 *
+Rel|final_gel->modifier_0|uses_modifier
+    -concentration: Modifier Concentration M 0
+
+Node|modifier_1|Modifier
+    --name: Modifier 1 *
+Rel|final_gel->modifier_1|uses_modifier
+    -concentration: Modifier Concentration M 1
+
+Node|modifier_2|Modifier
+    --name: Modifier 2 *
+Rel|final_gel->modifier_0|uses_modifier
+
+Node|modifier_solvent_0|Solvent  # TODO add molar ratios and volume ratios
+    --name: Modifier Solvent 0 *
+Rel|final_gel->modifier_solvent_0|uses_modifier_solvent
+    -concentration: Modifier Solvent M 0
+
+Node|modifier_solvent_1|Solvent
+    --name: Modifier Solvent 1 *
+Rel|final_gel->modifier_solvent_0|uses_modifier_solvent
+    -concentration: Modifier Solvent M 1
+
+Node|surfactant|Surfactant
+    --name: Surfactant *
+Rel|final_gel->surfactant|uses_surfactant
+    --concentration: Surfactant Concentration M

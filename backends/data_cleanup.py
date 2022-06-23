@@ -151,13 +151,25 @@ def fetch_zr_neo4j_dataset():
     input_data = read_excel(Path(__file__).parent / "raw_zr_aerogels.xlsx", sheet_name="Comprehensive")
 
     # Gather columns to not delimit by commas
-    holding_columns = ['Author', 'Year', 'Cited References (#)', "Times Cited (#)", 'Final Material']
+    holding_columns = ['Author', 'Year', 'Cited References (#)', "Times Cited (#)", 'Final Material',
+                       "Porosity"]
     for column in input_data.columns:
         if "notes" in column.lower() or 'title' in column.lower():
             holding_columns.append(column)
 
     input_data = cleanup(df=input_data, non_mut_cols=holding_columns)
     input_data['Final Gel Type'] = input_data['Drying Method'].apply(_parse)
+
+    # Replace Special Characters in column names
+    new_columns = []
+    for col in input_data.columns:
+        new_col = col.replace("(", "")
+        new_col = new_col.replace(")", "")
+        new_col = new_col.replace("#", "")
+        new_col = new_col.replace("°", "")
+        new_col = new_col.strip()
+        new_columns.append(new_col)
+    input_data.columns = new_columns
     return input_data
 
 
