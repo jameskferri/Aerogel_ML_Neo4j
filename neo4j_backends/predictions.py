@@ -79,11 +79,14 @@ def insert_paper_error(df, driver, database):
 
     with driver.session(database=database) as session:
 
-        titles = df["title"].unique()
+        titles = df["Title"].unique()
         for title in tqdm(titles, desc="Inserting paper errors"):
-            mean_error = df.loc[df["title"] == title]
+            mean_error = df.loc[df["Title"] == title]
             mean_error = mean_error["error"]
             mean_error = mean_error.mean()
+
+            title = title.replace('"', '\\"')
+
             if not isnan(mean_error):
                 query = f"""
 

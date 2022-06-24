@@ -1,5 +1,6 @@
 from tqdm import tqdm
 from pathlib import Path
+from pandas import read_excel, DataFrame
 from neo4j import GraphDatabase
 from numpy import isnan
 
@@ -17,7 +18,16 @@ def main():
     :return:
     """
 
+    main_df = read_excel(Path("backends/raw_si_aerogels.xlsx"))
     df = extract_predictions(Path("output"), aerogel_type="si")
+
+    new_df = []
+    for _, row in df.iterrows():
+        title = main_df.loc[main_df["Final Material"] == row["Final Material"]].to_dict('records')[0]
+        title = title["Title"]
+        row["Title"] = title
+        new_df.append(row)
+    new_df = DataFrame(new_df)
 
     uri = "neo4j://localhost:7687"
     username = "neo4j"
@@ -26,14 +36,14 @@ def main():
     trust = "TRUST_ALL_CERTIFICATES"
     driver = GraphDatabase.driver(uri, auth=(username, password), encrypted=encrypted, trust=trust)
 
-    database = "aerogels"
+    database = "neo4j"
 
     si_dataset = fetch_si_neo4j_dataset()
     schema_file = Path("neo4j_backends/si_schema.txt")
 
-    merge_schema(dataset=si_dataset, schema_file=schema_file, driver=driver, database=database)
+    # merge_schema(dataset=si_dataset, schema_file=schema_file, driver=driver, database=database)
 
-    insert_paper_error(df, driver, database)
+    insert_paper_error(new_df, driver, database)
 
 
 if __name__ == "__main__":
