@@ -46,7 +46,7 @@ def cleanup(df: DataFrame, non_mut_cols: list = None):
             if len(df_col_expanded.columns) > 1:
                 new_columns = {}
                 for i in range(len(df_col_expanded.columns)):
-                    new_columns[i] = f"{col}_{i}"
+                    new_columns[i] = f"{col} {i}"
                 df_col_expanded = df_col_expanded.rename(columns=new_columns)
 
                 df = df.join(df_col_expanded)
@@ -73,7 +73,6 @@ def cleanup(df: DataFrame, non_mut_cols: list = None):
 
 
 def _parse(x):
-
     if isinstance(x, float) and isnan(x):
         return "Xerogel"
 
@@ -125,8 +124,7 @@ def fetch_si_neo4j_dataset():
     input_data = read_excel(Path(__file__).parent / "raw_si_aerogels.xlsx", sheet_name="Comprehensive")
 
     # Gather columns to not delimit by commas
-    holding_columns = ['Authors', 'Author Emails', 'Corresponding Author', 'Corresponding Author Emails',
-                       'Year', 'Cited References (#)', "Times Cited (#)", 'Final Material']
+    holding_columns = ['Year', 'Cited References (#)', "Times Cited (#)", 'Final Material']
     for column in input_data.columns:
         if "notes" in column.lower() or 'title' in column.lower():
             holding_columns.append(column)
@@ -137,39 +135,25 @@ def fetch_si_neo4j_dataset():
 
 
 def fetch_si_ml_dataset():
-    input_data = fetch_si_neo4j_dataset()
+    input_data = read_excel(Path(__file__).parent / "raw_si_aerogels.xlsx", sheet_name="Comprehensive")
+
     drop_columns = ['Authors', 'Author Emails', 'Corresponding Author', 'Corresponding Author Emails',
-                    'Year', 'Cited References', "Times Cited"]
+                    'Year', 'Cited References (#)', "Times Cited (#)"]
     for column in input_data.columns:
         if "notes" in column.lower():
             drop_columns.append(column)
     input_data = input_data.drop(columns=drop_columns)
-    return input_data
 
+    title_col = input_data["Title"]
+    final_material_col = input_data["Final Material"]
+    input_data = input_data.drop(columns=["Title", "Final Material"])
 
-def fetch_zr_neo4j_dataset():
-    input_data = read_excel(Path(__file__).parent / "raw_zr_aerogels.xlsx", sheet_name="Comprehensive")
+    input_data = cleanup(df=input_data)
+    input_data = si_aerogel_cleanup(input_data)
 
-    # Gather columns to not delimit by commas
-    holding_columns = ['Author', 'Year', 'Cited References (#)', "Times Cited (#)", 'Final Material',
-                       "Porosity"]
-    for column in input_data.columns:
-        if "notes" in column.lower() or 'title' in column.lower():
-            holding_columns.append(column)
+    input_data["Title"] = title_col
+    input_data["Final Material"] = final_material_col
 
-    input_data = cleanup(df=input_data, non_mut_cols=holding_columns)
-    input_data['Final Gel Type'] = input_data['Drying Method'].apply(_parse)
-
-    # Replace Special Characters in column names
-    new_columns = []
-    for col in input_data.columns:
-        new_col = col.replace("(", "")
-        new_col = new_col.replace(")", "")
-        new_col = new_col.replace("#", "")
-        new_col = new_col.replace("°", "")
-        new_col = new_col.strip()
-        new_columns.append(new_col)
-    input_data.columns = new_columns
     return input_data
 
 

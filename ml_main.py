@@ -163,7 +163,7 @@ def main():
     raw_data.to_csv('dev.csv')
 
     # General Properties for Machine Learning
-    num_of_trials = 100
+    num_of_trials = 1
     train_percent = 0.8
     validation_percent = 0.1  # Note, this is the percent of the train set used for validation
 

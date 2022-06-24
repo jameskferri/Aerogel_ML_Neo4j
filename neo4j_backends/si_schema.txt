@@ -279,22 +279,6 @@ Node|drying_atmosphere_3|Atmosphere
 Rel|drying_steps->drying_atmosphere_3|uses_drying_atmosphere
     -step: {3}
 
-Node|drying_method_4|DryingMethod
-    --method: Drying Method 4 *
-Rel|drying_steps->drying_method_4|uses_drying_method
-    -step: {4}
-    -temp: Drying Temp 4 C
-    -pressure: Drying Pressure 4 MPa
-    -time: Drying Time 4 hrs
-
-Node|drying_method_5|DryingMethod
-    --method: Drying Method 5 *
-Rel|drying_steps->drying_method_5|uses_drying_method
-    -step: {5}
-    -temp: Drying Temp 5 C
-    -pressure: Drying Pressure 5 MPa
-    -time: Drying Time 5 hrs
-
 
 ### Sintering ###
 
@@ -473,19 +457,17 @@ Rel|final_gel->si_precursor|uses_si_precursor
 Node|addition_si_co_precursor_0|SiPrecursor  # TODO add volume ratios
     --name: Additional Si Co-Precursors 0 *
 Rel|final_gel->addition_si_co_precursor_0|uses_si_precursor
-    -concentration: Si Co-Precursor Concentration M 0
+    -concentration: Si Co-Precursor Concentration M
     -additional_precursor: {True}
 
 Node|addition_si_co_precursor_1|SiPrecursor
     --name: Additional Si Co-Precursors 1 *
 Rel|final_gel->addition_si_co_precursor_1|uses_si_precursor
-    -concentration: Si Co-Precursor Concentration M 1
     -additional_precursor: {True}
 
 Node|addition_si_co_precursor_2|SiPrecursor
     --name: Additional Si Co-Precursors 2 *
 Rel|final_gel->addition_si_co_precursor_2|uses_si_precursor
-    -concentration: Si Co-Precursor Concentration M 2
     -additional_precursor: {True}
 
 Node|hybrid_si_precursor_0|HybridPrecursor
@@ -555,12 +537,10 @@ Rel|final_gel->base_catalyst_1|uses_base_catalyst
 Node|modifier_0|Modifier  # TODO add molar ratios and volume ratios
     --name: Modifier 0 *
 Rel|final_gel->modifier_0|uses_modifier
-    -concentration: Modifier Concentration M 0
 
 Node|modifier_1|Modifier
     --name: Modifier 1 *
 Rel|final_gel->modifier_1|uses_modifier
-    -concentration: Modifier Concentration M 1
 
 Node|modifier_2|Modifier
     --name: Modifier 2 *
@@ -569,12 +549,10 @@ Rel|final_gel->modifier_0|uses_modifier
 Node|modifier_solvent_0|Solvent  # TODO add molar ratios and volume ratios
     --name: Modifier Solvent 0 *
 Rel|final_gel->modifier_solvent_0|uses_modifier_solvent
-    -concentration: Modifier Solvent M 0
 
 Node|modifier_solvent_1|Solvent
     --name: Modifier Solvent 1 *
 Rel|final_gel->modifier_solvent_0|uses_modifier_solvent
-    -concentration: Modifier Solvent M 1
 
 Node|surfactant|Surfactant
     --name: Surfactant *
