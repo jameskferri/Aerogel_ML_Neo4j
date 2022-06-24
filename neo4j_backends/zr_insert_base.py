@@ -3,7 +3,6 @@ from pathlib import Path
 from pandas import read_excel, DataFrame
 from numpy import nan, nansum
 from tqdm import tqdm
-from neo4j import GraphDatabase
 
 
 def __ttcn__(n):
@@ -23,7 +22,7 @@ def __ttcn__(n):
         return n
 
 
-def core_node(row):
+def core_node(row, session):
     gel_id = row['Index']
 
     final_product = row['Final Material']
@@ -96,7 +95,7 @@ def core_node(row):
             )
 
 
-def sintering(row):
+def sintering(row, session):
     gel_id = row['Index']
     sintering_temp = __ttcn__(row['Sintering Temp (°C)'])
     sintering_time = __ttcn__(row['Sintering Time (min)'])
@@ -130,7 +129,7 @@ def sintering(row):
         )
 
 
-def lit_info(row):
+def lit_info(row, session):
     gel_id = row['Index']
     author = row['Author']
     title = row['Title']
@@ -153,7 +152,7 @@ def lit_info(row):
     )
 
 
-def gel(row):
+def gel(row, session):
     gel_id = row['Index']
     annas_notes = row["Anna's Notes"]
     ph_sol = __ttcn__(row['pH final sol'])
@@ -378,7 +377,7 @@ def gel(row):
                 )
 
 
-def washing_steps(row):
+def washing_steps(row, session):
     gel_id = row['Index']
     washing_notes = row['Gelation/Washing Notes']
 
@@ -464,7 +463,7 @@ def washing_steps(row):
         )
 
 
-def drying(row):
+def drying(row, session):
     gel_id = row['Index']
     drying_method = row['Drying Method']
     drying_solvent = row['Drying Solvent']
@@ -582,7 +581,7 @@ def gather_additional_data(df):
     return df
 
 
-def main():
+def insert_zr_into_neo4j(session):
 
     print("Inserting data into Neo4j...")
     df = read_excel(Path(__file__).parent.parent / "backends/raw_zr_aerogels.xlsx")
@@ -600,26 +599,10 @@ def main():
 
     rows = df.to_dict('records')
     for row in tqdm(rows):
-        core_node(row)
-        sintering(row)
-        lit_info(row)
-        gel(row)
-        washing_steps(row)
-        drying(row)
+        core_node(row, session)
+        sintering(row, session)
+        lit_info(row, session)
+        gel(row, session)
+        washing_steps(row, session)
+        drying(row, session)
 
-
-if __name__ == "__main__":
-
-    # Collect driver information
-    uri = "neo4j://localhost:7687"
-    username = "neo4j"
-    password = "password"
-    encrypted = False
-    trust = "TRUST_ALL_CERTIFICATES"
-    driver = GraphDatabase.driver(uri, auth=(username, password), encrypted=encrypted, trust=trust)
-
-    # Specify which database to target
-    database = "neo4j"
-
-    with driver.session(database=database) as session:
-        main()

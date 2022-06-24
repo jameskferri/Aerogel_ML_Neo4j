@@ -94,17 +94,6 @@ def si_aerogel_cleanup(df: DataFrame):
     df = df.replace("<", "", regex=True)
     df = df.replace(">", "", regex=True)
 
-    # Replace Special Characters in column names
-    new_columns = []
-    for col in df.columns:
-        new_col = col.replace("(", "")
-        new_col = new_col.replace(")", "")
-        new_col = new_col.replace("#", "")
-        new_col = new_col.replace("°", "")
-        new_col = new_col.strip()
-        new_columns.append(new_col)
-    df.columns = new_columns
-
     # Determine weather or not Aerogel is a Xerogel or not
     df['Final Gel Type'] = df['Drying Method'].apply(_parse)
 
@@ -131,11 +120,28 @@ def fetch_si_neo4j_dataset():
 
     input_data = cleanup(df=input_data, non_mut_cols=holding_columns)
     input_data = si_aerogel_cleanup(input_data)
+
+    # Replace Special Characters in column names
+    new_columns = []
+    for col in input_data.columns:
+        new_col = col.replace("(", "")
+        new_col = new_col.replace(")", "")
+        new_col = new_col.replace("#", "")
+        new_col = new_col.replace("°", "")
+        new_col = new_col.strip()
+        new_columns.append(new_col)
+    input_data.columns = new_columns
+
     return input_data
 
 
-def fetch_si_ml_dataset():
+def fetch_si_ml_dataset(additional_drop_columns=None):
+    if additional_drop_columns is None:
+        additional_drop_columns = []
+
     input_data = read_excel(Path(__file__).parent / "raw_si_aerogels.xlsx", sheet_name="Comprehensive")
+
+    input_data = input_data.drop(columns=additional_drop_columns)
 
     drop_columns = ['Authors', 'Author Emails', 'Corresponding Author', 'Corresponding Author Emails',
                     'Year', 'Cited References (#)', "Times Cited (#)"]
@@ -157,22 +163,30 @@ def fetch_si_ml_dataset():
     return input_data
 
 
-def fetch_zr_ml_dataset():
+def fetch_zr_ml_dataset(additional_drop_columns=None):
+    if additional_drop_columns is None:
+        additional_drop_columns = []
+
     input_data = read_excel(Path(__file__).parent / "raw_zr_aerogels.xlsx", sheet_name="Comprehensive")
 
+    input_data = input_data.drop(columns=additional_drop_columns)
+
+    title_col = input_data["Title"]
+    final_material_col = input_data["Final Material"]
+    input_data = input_data.drop(columns=["Title", "Final Material"])
+
     # Gather columns to not delimit by commas
-    drop_columns = ['Author', 'Year', 'Cited References (#)', "Times Cited (#)", 'Final Material']
+    drop_columns = ['Author', 'Year', 'Cited References (#)', "Times Cited (#)"]
     for column in input_data.columns:
         if "notes" in column.lower() or 'title' in column.lower():
             drop_columns.append(column)
-
-    input_data = cleanup(df=input_data, non_mut_cols=drop_columns)
     input_data = input_data.drop(columns=drop_columns)
+
+    input_data = cleanup(df=input_data)
     input_data['Final Gel Type'] = input_data['Drying Method'].apply(_parse)
+
+    input_data["Title"] = title_col
+    input_data["Final Material"] = final_material_col
+
     return input_data
 
-
-if __name__ == "__main__":
-    d = fetch_zr_ml_dataset()
-    for i, r in d.iterrows():
-        print(r["Drying Method"], r["Final Gel Type"])
