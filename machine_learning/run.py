@@ -80,9 +80,9 @@ def run_params(base_df, aerogel_type, seed, y_column, num_of_trials, train_perce
         val_target = target_scaler.transform(val_target.reshape(-1, 1))
 
         # Keras Parameters
-        n_hidden = [1, 2, 3, 4, 5]
+        n_hidden = list(range(0, 10))
         neurons = list(range(10, 200, 10))
-        drop = list(arange(0.2, 0.25, 0.02))
+        drop = list(arange(0.15, 0.4, 0.02))
         epochs = [100]
         param_grid = {
             'n_hidden': n_hidden,
@@ -186,16 +186,14 @@ def run(aerogel_type, cycles, num_of_trials, train_percent, validation_percent, 
     raw_data = raw_data.loc[raw_data['Final Gel Type'] == "Aerogel"]
     raw_data = raw_data.drop(columns=['Final Gel Type'])
 
-    # # Fetch upper and lower threshold to filter data by, looking for top and bottom 3 percent
-    # p = 0.05
-    # upper_threshold = raw_data[y_column].sort_values(ascending=True)[:-int(p * len(raw_data))].max()
-    # lower_threshold = raw_data[y_column].sort_values(ascending=True)[int(p * len(raw_data)):].min()
-    #
-    # # Remove top and bottom 3 percent
-    # raw_data = raw_data.loc[raw_data[y_column] >= lower_threshold]
-    # raw_data = raw_data.loc[raw_data[y_column] <= upper_threshold]
+    # Remove paper that are 2 std above or below the average
+    y_col_std = raw_data[y_column].std()
+    y_col_mean = raw_data[y_column].mean()
+    raw_data = raw_data.loc[raw_data[y_column] < y_col_mean + 2 * y_col_std]
+    raw_data = raw_data.loc[raw_data[y_column] > y_col_mean - 2 * y_col_std]
 
     for _ in range(cycles):
+
         # Shuffle DataFrame
         raw_data = raw_data.sample(frac=1)
         raw_data = raw_data.reset_index(drop=True)

@@ -34,10 +34,10 @@ def main():
 
     database = "neo4j"
 
-    with driver.session(database=database) as session:
-        insert_zr_into_neo4j(session=session)
+    # with driver.session(database=database) as session:
+    #     insert_zr_into_neo4j(session=session)
 
-    insert_paper_error(new_df, driver, database)
+    insert_paper_error(new_df, driver, database, prop_key="no_drop_paper_error")
 
 
 if __name__ == "__main__":

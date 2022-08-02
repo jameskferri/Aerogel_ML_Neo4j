@@ -75,7 +75,7 @@ def extract_predictions(output_dir: Path, aerogel_type):
     return combined_df
 
 
-def insert_paper_error(df, driver, database):
+def insert_paper_error(df, driver, database, prop_key):
 
     with driver.session(database=database) as session:
 
@@ -92,10 +92,18 @@ def insert_paper_error(df, driver, database):
 
                 MATCH (l:LitInfo)
                 WHERE l.title = "{title}"
-                SET l.paper_error = {mean_error}
+                SET l.{prop_key} = {mean_error}
 
                 """
 
                 session.run(query)
 
 
+if __name__ == "__main__":
+
+    from pandas import read_excel
+
+    main_df = read_excel(Path(__file__).parent.parent / "backends/raw_si_aerogels.xlsx")
+    df = extract_predictions(Path(__file__).parent.parent / "output", aerogel_type="zr")
+
+    print(df.columns)
