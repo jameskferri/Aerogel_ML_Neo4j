@@ -141,6 +141,8 @@ def fetch_si_ml_dataset(additional_drop_columns=None):
 
     input_data = read_excel(Path(__file__).parent / "raw_si_aerogels.xlsx", sheet_name="Comprehensive")
 
+    input_data["Final Material"] = input_data["Final Material"].str.strip()
+
     input_data = input_data.drop(columns=additional_drop_columns)
 
     drop_columns = ['Authors', 'Author Emails', 'Corresponding Author', 'Corresponding Author Emails',
@@ -168,6 +170,8 @@ def fetch_zr_ml_dataset(additional_drop_columns=None):
         additional_drop_columns = []
 
     input_data = read_excel(Path(__file__).parent / "raw_zr_aerogels.xlsx", sheet_name="Comprehensive")
+
+    input_data["Final Material"] = input_data["Final Material"].str.strip()
 
     input_data = input_data.drop(columns=additional_drop_columns)
 

@@ -25,7 +25,7 @@ def collect_nodes(schema_file):
             if on_node:
 
                 # If next line is a relationship block, stop collecting properties
-                if line[:3].lower() == "rel":
+                if line[:3].lower() == "rel" or line.strip() == "$end$":
                     all_nodes.append(current_node)
                     on_node = False
 
@@ -93,7 +93,7 @@ def collect_rels(schema_file, nodes):
             if on_rel:
 
                 # If next line is a node block, stop collecting properties
-                if line[:4].lower() == "node":
+                if line[:4].lower() == "node" or line.strip() == "$end$":
                     all_rels.append(current_rel)
                     on_rel = False
 
@@ -190,14 +190,14 @@ def merge_schema(dataset, schema_file, driver, database):
                         set_prop_name, set_prop = tuple(set_prop.items())[0]
                         set_prop = format_prop(set_prop)
                         if set_prop is not None:
-                            query += "ON CREATE SET %s.%s=%s\n" % (node["node_id"], set_prop_name, set_prop)
+                            query += "SET %s.%s=%s\n" % (node["node_id"], set_prop_name, set_prop)
 
                     for prop in node["props"]:
                         prop_name, prop = tuple(prop.items())[0]
                         prop = row[prop]
                         prop = format_prop(prop)
                         if prop is not None:
-                            query += "ON CREATE SET %s.%s=%s\n" % (node["node_id"], prop_name, prop)
+                            query += "SET %s.%s=%s\n" % (node["node_id"], prop_name, prop)
 
                     queries.append(query)
 
@@ -227,14 +227,14 @@ def merge_schema(dataset, schema_file, driver, database):
                         set_prop_name, set_prop = tuple(set_prop.items())[0]
                         set_prop = format_prop(set_prop)
                         if set_prop is not None:
-                            query += "ON CREATE SET r.%s=%s\n" % (set_prop_name, set_prop)
+                            query += "SET r.%s=%s\n" % (set_prop_name, set_prop)
 
                     for prop in rel["props"]:
                         prop_name, prop = tuple(prop.items())[0]
                         prop = row[prop]
                         prop = format_prop(prop)
                         if prop is not None:
-                            query += "ON CREATE SET r.%s=%s\n" % (prop_name, prop)
+                            query += "SET r.%s=%s\n" % (prop_name, prop)
 
                 queries.append(query)
 

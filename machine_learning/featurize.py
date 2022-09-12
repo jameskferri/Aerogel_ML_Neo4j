@@ -90,16 +90,16 @@ def featurize(df, paper_id_column=None, bit_size=128):
     # https://stackoverflow.com/questions/45312377/how-to-one-hot-encode-from-a-pandas-column-containing-a-list
     for col in df:
         if df[col].dtype == "object":
-            # if col not in smiles_columns:
-                # s = df[col].explode()
-                # s = crosstab(s.index, s)
-                # new_sub_cols = []
-                # for sub_col in s.columns:
-                #     new_sub_cols.append(col + ": " + sub_col)
-                # s.columns = new_sub_cols
-                # df = df.join(s)
-                # df = df.drop(columns=[col])
-            df = df.drop(columns=[col])
+            if col not in smiles_columns:
+                s = df[col].explode()
+                s = crosstab(s.index, s)
+                new_sub_cols = []
+                for sub_col in s.columns:
+                    new_sub_cols.append(col + ": " + sub_col)
+                s.columns = new_sub_cols
+                df = df.join(s)
+                df = df.drop(columns=[col])
+            # df = df.drop(columns=[col])
 
     # Featurize compounds in each SMILES columns with a RDkit fingerprint
     df = featurize_with_rdkit(df, compound_dict, bit_size=bit_size)
@@ -111,15 +111,15 @@ def featurize(df, paper_id_column=None, bit_size=128):
             drop_columns.append(col)
     df = df.drop(columns=drop_columns)
 
-    # Replace unknown temperature with room temperature (20 C)
-    temp_columns = list(df.filter(regex="Temp").columns)
-    for col in temp_columns:
-        df[col] = df[col].fillna(20)
-
-    # Replace unknown pressure with ambient pressure (0.101325 mPa)
-    pressure_columns = list(df.filter(regex="Pressure").columns)
-    for col in pressure_columns:
-        df[col] = df[col].fillna(0.101325)
+    # # Replace unknown temperature with room temperature (20 C)
+    # temp_columns = list(df.filter(regex="Temp").columns)
+    # for col in temp_columns:
+    #     df[col] = df[col].fillna(20)
+    #
+    # # Replace unknown pressure with ambient pressure (0.101325 mPa)
+    # pressure_columns = list(df.filter(regex="Pressure").columns)
+    # for col in pressure_columns:
+    #     df[col] = df[col].fillna(0.101325)
 
     # Replace NaN with mean of other columns
     for col in df:

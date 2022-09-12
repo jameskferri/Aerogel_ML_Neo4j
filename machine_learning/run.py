@@ -192,6 +192,33 @@ def run(aerogel_type, cycles, num_of_trials, train_percent, validation_percent, 
     raw_data = raw_data.loc[raw_data[y_column] < y_col_mean + 2 * y_col_std]
     raw_data = raw_data.loc[raw_data[y_column] > y_col_mean - 2 * y_col_std]
 
+    # # Remove aerogels that have an error greater than 1 std above average error
+    # from neo4j import GraphDatabase
+    #
+    # uri = "neo4j://localhost:7687"
+    # username = "neo4j"
+    # password = "password"
+    # encrypted = False
+    # trust = "TRUST_ALL_CERTIFICATES"
+    # driver = GraphDatabase.driver(uri, auth=(username, password), encrypted=encrypted, trust=trust)
+    #
+    # database = "neo4j"
+    #
+    # with driver.session(database=database) as session:
+    #     query = """
+    #     MATCH (n: FinalGel)
+    #     WHERE (n.ml_drop_error) IS NOT NULL
+    #     RETURN n.final_material as final_material, n.ml_drop_error as error
+    #     """
+    #     query_data = session.run(query).data()
+    #
+    # query_data = DataFrame(query_data)
+    # error_mean = query_data["error"].mean()
+    # error_std = query_data["error"].std()
+    # query_data = query_data.loc[query_data["error"] < error_mean + error_std]
+    # aerogels_to_train = query_data["final_material"]
+    # raw_data = raw_data.loc[raw_data["Final Material"].isin(aerogels_to_train.tolist())]
+
     for _ in range(cycles):
 
         # Shuffle DataFrame

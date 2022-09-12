@@ -5,7 +5,7 @@ from neo4j import GraphDatabase
 from numpy import isnan
 
 from backends.data_cleanup import fetch_si_neo4j_dataset
-from neo4j_backends.predictions import extract_predictions, insert_paper_error
+from neo4j_backends.predictions import extract_predictions, insert_paper_error, insert_errors, insert_predicted_values, insert_predicted_std_values
 from neo4j_backends.si_insert_base import merge_schema
 
 
@@ -38,12 +38,20 @@ def main():
 
     database = "neo4j"
 
-    si_dataset = fetch_si_neo4j_dataset()
-    schema_file = Path("neo4j_backends/si_schema.txt")
+    # si_dataset = fetch_si_neo4j_dataset()
+    # schema_file = Path("neo4j_backends/si_schema.txt")
 
     # merge_schema(dataset=si_dataset, schema_file=schema_file, driver=driver, database=database)
 
-    insert_paper_error(new_df, driver, database)
+    # insert_paper_error(new_df, driver, database, prop_key="no_outliers_paper_error")
+    # insert_errors(new_df, driver, database, prop_key="ml_no_outliers_error")
+    # insert_predicted_values(new_df, driver, database, prop_key="no_outliers_predicted_surface_area")
+    # insert_predicted_std_values(new_df, driver, database, prop_key="no_outliers_predicted_surface_area_std")
+
+    insert_paper_error(new_df, driver, database, prop_key="drop_paper_error")
+    insert_errors(new_df, driver, database, prop_key="ml_drop_error")
+    insert_predicted_values(new_df, driver, database, prop_key="drop_predicted_surface_area")
+    insert_predicted_std_values(new_df, driver, database, prop_key="drop_predicted_surface_area_std")
 
 
 if __name__ == "__main__":

@@ -135,7 +135,7 @@ Rel|final_gel->formation_method_0|formed_by
 
 Node|formation_method_1|FormationMethod
     --name: Formation Method 1 *
-Rel|final_gel->formation_method_0|formed_by
+Rel|final_gel->formation_method_1|formed_by
 
 
 ### Sols ###
@@ -164,7 +164,7 @@ Rel|sol_1->sol_1_solvent_2|uses_solvent
 
 Node|sol_1_solvent_3|Solvent
     --name: Sol 1 3 *
-Rel|sol_1->sol_1_solvent_0|uses_solvent
+Rel|sol_1->sol_1_solvent_3|uses_solvent
 
 Node|sol_1_solvent_4|Solvent
     --name: Sol 1 4 *
@@ -544,7 +544,7 @@ Rel|final_gel->modifier_1|uses_modifier
 
 Node|modifier_2|Modifier
     --name: Modifier 2 *
-Rel|final_gel->modifier_0|uses_modifier
+Rel|final_gel->modifier_2|uses_modifier
 
 Node|modifier_solvent_0|Solvent  # TODO add molar ratios and volume ratios
     --name: Modifier Solvent 0 *
@@ -552,9 +552,11 @@ Rel|final_gel->modifier_solvent_0|uses_modifier_solvent
 
 Node|modifier_solvent_1|Solvent
     --name: Modifier Solvent 1 *
-Rel|final_gel->modifier_solvent_0|uses_modifier_solvent
+Rel|final_gel->modifier_solvent_1|uses_modifier_solvent
 
 Node|surfactant|Surfactant
     --name: Surfactant *
 Rel|final_gel->surfactant|uses_surfactant
     --concentration: Surfactant Concentration M
+
+$end$
