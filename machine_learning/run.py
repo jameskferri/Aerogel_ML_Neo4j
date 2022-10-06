@@ -17,6 +17,7 @@ from machine_learning.misc import zip_run_name_files
 
 
 def run_params(base_df, aerogel_type, seed, y_column, num_of_trials, train_percent, validation_percent):
+
     # Featurize DataFrame
     material_col = base_df["Final Material"]
 
@@ -186,13 +187,13 @@ def run(aerogel_type, cycles, num_of_trials, train_percent, validation_percent, 
     raw_data = raw_data.loc[raw_data['Final Gel Type'] == "Aerogel"]
     raw_data = raw_data.drop(columns=['Final Gel Type'])
 
-    # Remove paper that are 2 std above or below the average
-    y_col_std = raw_data[y_column].std()
-    y_col_mean = raw_data[y_column].mean()
-    raw_data = raw_data.loc[raw_data[y_column] < y_col_mean + 2 * y_col_std]
-    raw_data = raw_data.loc[raw_data[y_column] > y_col_mean - 2 * y_col_std]
-
-    # # Remove aerogels that have an error greater than 1 std above average error
+    # # Remove paper that are 2 std above or below the average
+    # y_col_std = raw_data[y_column].std()
+    # y_col_mean = raw_data[y_column].mean()
+    # raw_data = raw_data.loc[raw_data[y_column] < y_col_mean + 2 * y_col_std]
+    # raw_data = raw_data.loc[raw_data[y_column] > y_col_mean - 2 * y_col_std]
+    #
+    # # Remove aerogels with high machine learning prediction error
     # from neo4j import GraphDatabase
     #
     # uri = "neo4j://localhost:7687"
@@ -202,22 +203,22 @@ def run(aerogel_type, cycles, num_of_trials, train_percent, validation_percent, 
     # trust = "TRUST_ALL_CERTIFICATES"
     # driver = GraphDatabase.driver(uri, auth=(username, password), encrypted=encrypted, trust=trust)
     #
-    # database = "neo4j"
+    # not_outliers = []
+    # with driver.session(database="neo4j") as session:
     #
-    # with driver.session(database=database) as session:
-    #     query = """
-    #     MATCH (n: FinalGel)
-    #     WHERE (n.ml_drop_error) IS NOT NULL
-    #     RETURN n.final_material as final_material, n.ml_drop_error as error
+    #     query = f"""
+    #
+    #     MATCH (n:FinalGel)
+    #     WHERE n.ml_drop_error < 107 * 2
+    #     RETURN n.final_material as `final_material`
+    #
     #     """
-    #     query_data = session.run(query).data()
     #
-    # query_data = DataFrame(query_data)
-    # error_mean = query_data["error"].mean()
-    # error_std = query_data["error"].std()
-    # query_data = query_data.loc[query_data["error"] < error_mean + error_std]
-    # aerogels_to_train = query_data["final_material"]
-    # raw_data = raw_data.loc[raw_data["Final Material"].isin(aerogels_to_train.tolist())]
+    #     results = session.run(query).data()
+    #     for result in results:
+    #         not_outliers.append(result["final_material"])
+    #
+    # raw_data = raw_data[raw_data["Final Material"].isin(not_outliers)]
 
     for _ in range(cycles):
 

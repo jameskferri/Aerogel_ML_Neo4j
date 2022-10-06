@@ -15,7 +15,7 @@ def main():
     """
 
     main_df = read_excel(Path("backends/raw_zr_aerogels.xlsx"))
-    df = extract_predictions(Path("output"), aerogel_type="zr")
+    df = extract_predictions(Path("si_no_outliers"), aerogel_type="zr")
 
     new_df = []
     for _, row in df.iterrows():
@@ -34,8 +34,8 @@ def main():
 
     database = "neo4j"
 
-    # with driver.session(database=database) as session:
-    #     insert_zr_into_neo4j(session=session)
+    with driver.session(database=database) as session:
+        insert_zr_into_neo4j(session=session)
 
     insert_paper_error(new_df, driver, database, prop_key="no_drop_paper_error")
 

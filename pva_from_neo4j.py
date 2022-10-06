@@ -1,3 +1,8 @@
+from pathlib import Path
+from os import mkdir
+from os.path import exists
+from shutil import rmtree
+
 from pandas import DataFrame
 from neo4j import GraphDatabase
 from sklearn.metrics import mean_squared_error, r2_score
@@ -14,7 +19,11 @@ if __name__ == "__main__":
 
     database = "neo4j"
 
-    prop_keys = ["no_outliers", "drop"]
+    if exists(Path("PVA Output")):
+        rmtree(Path("PVA Output"))
+    mkdir(Path("PVA Output"))
+
+    prop_keys = ["no_outliers", "drop", "control"]
 
     for prop_key in prop_keys:
 
@@ -68,6 +77,7 @@ if __name__ == "__main__":
             pva = []
             for row in data:
                 row = list(row.values())[0]
+
                 surface_area = row["surface_area"]
                 predicted_sa = row[f"{prop_key}_predicted_surface_area"]
                 predicted_sa_std = row[f"{prop_key}_predicted_surface_area_std"]
@@ -82,11 +92,14 @@ if __name__ == "__main__":
 
             pva = DataFrame(pva)
 
+            pva["predicted_sa_std"] = pva["predicted_sa_std"].abs()
+
             max_sa, min_sa = pva["surface_area"].max(), pva["surface_area"].min()
+            max_std_sa, min_std_sa = pva["predicted_sa_std"].max(), pva["predicted_sa_std"].min()
 
             pva["surface_area"] = (pva["surface_area"] - min_sa) / (max_sa - min_sa)
             pva["predicted_sa"] = (pva["predicted_sa"] - min_sa) / (max_sa - min_sa)
-            pva["predicted_sa_std"] = (pva["predicted_sa_std"] - min_sa) / (max_sa - min_sa)
+            pva["predicted_sa_std"] = (pva["predicted_sa_std"] - min_std_sa) / (max_std_sa - min_std_sa)
 
             mse = mean_squared_error(pva["surface_area"], pva["predicted_sa"]).mean()
             rmse = mse ** (1 / 2)
@@ -95,4 +108,4 @@ if __name__ == "__main__":
             pva_graph(pva.rename(columns={"surface_area": "actual",
                                           "predicted_sa": "pred_avg",
                                           "predicted_sa_std": "pred_std"}),
-                      r2, mse, rmse, run_name=f"PVA Output/{prop_key}_{key}.png")
+                      r2, mse, rmse, run_name=f"PVA Output/{prop_key}_{key}")

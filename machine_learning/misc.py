@@ -7,7 +7,7 @@ from os.path import exists
 
 def zip_run_name_files(run_name):
 
-    # Make sure a output directory exist
+    # Make sure a si_no_outliers directory exist
     if not exists('output'):
         mkdir('output')
 

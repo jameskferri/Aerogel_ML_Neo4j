@@ -112,6 +112,8 @@ def si_aerogel_cleanup(df: DataFrame):
 def fetch_si_neo4j_dataset():
     input_data = read_excel(Path(__file__).parent / "raw_si_aerogels.xlsx", sheet_name="Comprehensive")
 
+    input_data["Final Material"] = input_data["Final Material"].str.strip()
+
     # Gather columns to not delimit by commas
     holding_columns = ['Year', 'Cited References (#)', "Times Cited (#)", 'Final Material']
     for column in input_data.columns:

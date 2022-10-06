@@ -19,9 +19,10 @@ def build_estimator(params):
             model.add(
                 Dropout(params["dropout"][i])
             )
+
     model.add(Dense(1))
     model.compile(
-        optimizer="adam",
+        optimizer="Adam",
         loss="mse",
         metrics=["mse", "mae"],
     )

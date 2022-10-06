@@ -20,7 +20,7 @@ def extract_predictions(output_dir: Path, aerogel_type):
         if "bulk" in path.stem and ".zip" == path.suffix and aerogel_type in path.stem:
             counter += 1
 
-    # Grab predictions.csv from each zip file in output directory
+    # Grab predictions.csv from each zip file in si_no_outliers directory
     # Load zip files in memory
     for path in tqdm(output_dir.iterdir(), desc="Extracting Data", total=counter):
 
@@ -167,11 +167,29 @@ def insert_predicted_std_values(df, driver, database, prop_key):
             session.run(query)
 
 
+def insert_error(df, driver, database, prop_key):
+
+    with driver.session(database=database) as session:
+        for index, row in df.iterrows():
+            final_material = row["Final Material"]
+            error = round(row["error"], 4)
+
+            query = f"""
+
+            MATCH (l:FinalGel)
+            WHERE l.final_material = "{final_material}"
+            SET l.{prop_key} = {error}
+
+            """
+
+            session.run(query)
+
+
 if __name__ == "__main__":
 
     from pandas import read_excel
 
     main_df = read_excel(Path(__file__).parent.parent / "backends/raw_si_aerogels.xlsx")
-    df = extract_predictions(Path(__file__).parent.parent / "output", aerogel_type="zr")
+    df = extract_predictions(Path(__file__).parent.parent / "si_no_outliers", aerogel_type="zr")
 
     print(df.columns)
