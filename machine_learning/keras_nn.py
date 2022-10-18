@@ -1,8 +1,8 @@
 from random import choices, choice
 
 from sklearn.metrics import mean_squared_error
-from keras.models import Sequential
-from keras.layers import Dropout, Dense
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dropout, Dense
 
 
 def build_estimator(params):

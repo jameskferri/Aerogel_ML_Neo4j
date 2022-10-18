@@ -1,0 +1,23 @@
+name: far
+channels:
+  - defaults
+  - conda-forge
+  - rdkit
+dependencies:
+  - python=3.9.7
+  - pandas
+  - matplotlib
+  - tqdm
+  - xlrd
+  - rdkit
+  - tensorflow=2.6.0
+  - keras-tuner=1.0.3
+  - scikit-learn=1.0.1
+  - scikit-optimize=0.9.0
+  - xgboost=1.5.0
+  - shap=0.39.0
+  - openpyxl=3.0.5
+  - pip
+  - pip:
+      - git+https://github.com/bp-kelley/descriptastorus@2.4.0
+      - neo4j
