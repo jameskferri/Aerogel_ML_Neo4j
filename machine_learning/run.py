@@ -1,3 +1,5 @@
+from os import mkdir
+from os.path import exists
 from os import urandom
 from datetime import datetime
 from json import dump
@@ -5,18 +7,19 @@ from math import ceil
 from time import sleep
 
 from numpy import arange
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, r2_score
 
-from backends.data_cleanup import fetch_si_ml_dataset, fetch_zr_ml_dataset
+from backends.data_cleanup import fetch_si_ml_dataset
 from machine_learning.featurize import featurize
 from machine_learning.keras_nn import tune, build_estimator
 from machine_learning.graph import pva_graph
 from machine_learning.misc import zip_run_name_files
+from neo4j_backends.predictions import extract_predictions
 
 
-def run_params(base_df, aerogel_type, seed, y_column, num_of_trials, train_percent, validation_percent):
+def run_params(base_df, aerogel_type, seed, y_column, num_of_trials, train_percent, validation_percent, working_dir):
 
     # Featurize DataFrame
     material_col = base_df["Final Material"]
@@ -26,18 +29,22 @@ def run_params(base_df, aerogel_type, seed, y_column, num_of_trials, train_perce
 
     test_percent = 1 - train_percent
 
-    # TODO think of a better way to do this
-    # Calculate start and stop indexes
-    num_test_files = int(len(base_df) * test_percent)
-    groups = []
-    for i in range(len(base_df)):
-        if i % num_test_files == 0:
-            groups.append(i)
+    # Calculate start and stop indexes for each test set
     sections = []
-    for i in range(len(groups) - 1):
-        sections.append([groups[i], groups[i + 1]])
-    if groups[-1] != len(base_df):
-        sections.append([groups[-1], len(base_df)])
+    n_total = len(base_df)
+    n_test = int(n_total * test_percent)
+    for i in range(ceil(n_total / n_test)):
+        left_test_index = i * n_test
+        right_test_index = (i + 1) * n_test
+
+        # Ensure no overflow of indexes
+        if right_test_index > n_total:
+            right_test_index = n_total
+
+        # If right_test_index - left_test_index != 0
+        # Otherwise there are no samples in spilt
+        if left_test_index != right_test_index:
+            sections.append([left_test_index, right_test_index])
 
     for i, section in enumerate(sections):
 
@@ -48,8 +55,6 @@ def run_params(base_df, aerogel_type, seed, y_column, num_of_trials, train_perce
             break
 
         # Spilt up data
-        # train_df = df.sample(frac=train_percent, random_state=seed)
-        # test_df = df.drop(train_df.index)
         test_df = base_df.iloc[start_split:end_split]
         train_df = base_df.drop(test_df.index)
         val_df = train_df.sample(frac=validation_percent, random_state=seed)
@@ -105,13 +110,6 @@ def run_params(base_df, aerogel_type, seed, y_column, num_of_trials, train_perce
             predictions_j = target_scaler.inverse_transform(predictions_j.reshape(-1, 1)).reshape(-1, )
             predictions[f"predictions_{j}"] = predictions_j
 
-        # # ### DEV SECTION ### #
-        # predictions = DataFrame()
-        # for j in range(5):
-        #     predictions_j = test_target.tolist()
-        #     predictions[f"predictions_{j}"] = predictions_j
-        # # ### END DEV SECTION ### #
-
         # Gather PVA data
         pva = DataFrame()
         pva["actual"] = test_target.to_numpy()
@@ -152,12 +150,16 @@ def run_params(base_df, aerogel_type, seed, y_column, num_of_trials, train_perce
             dump(feature_list, f)
         predictions.to_csv(f"{run_name}_predictions.csv")
         pva_graph(scaled_pva, r2, mse, rmse, run_name)
-        zip_run_name_files(run_name)
+        zip_run_name_files(run_name, working_dir)
 
         sleep(1)
 
 
-def run(aerogel_type, cycles, num_of_trials, train_percent, validation_percent, drop_papers=None):
+def run(aerogel_type, cycles, num_of_trials, train_percent, validation_percent, filter_options, output_dir):
+
+    if exists(output_dir):
+        raise OSError("output directory already exists")
+    mkdir(output_dir)
 
     y_column = 'Surface Area (m2/g)'
 
@@ -168,17 +170,8 @@ def run(aerogel_type, cycles, num_of_trials, train_percent, validation_percent, 
                            'Bulk Density (g/cm3)', 'Young Modulus (MPa)', 'Crystalline Phase',
                            'Average Pore Size (nm)', 'Thermal Conductivity (W/mK)', 'Gelation Time (mins)']
         raw_data = fetch_si_ml_dataset(additional_drop_columns=si_drop_columns)
-    elif aerogel_type == "zr":
-        zr_drop_columns = ['Porosity', 'Porosity (%)', 'Pore Volume (cm3/g)', 'Pore Size (nm)',
-                           'Nanoparticle Size (nm)', 'Density (g/cm3)',
-                           'Thermal Conductivity (W/mK)', 'Crystalline Phase', 'Gelation Time (mins)']
-        raw_data = fetch_zr_ml_dataset(additional_drop_columns=zr_drop_columns)
     else:
         raise TypeError()
-
-    if drop_papers:
-        for drop_paper in drop_papers:
-            raw_data = raw_data.loc[raw_data["Title"] != drop_paper]
 
     # Remove any rows that do not have surface area specified
     raw_data = raw_data.dropna(subset=[y_column])
@@ -187,51 +180,59 @@ def run(aerogel_type, cycles, num_of_trials, train_percent, validation_percent, 
     raw_data = raw_data.loc[raw_data['Final Gel Type'] == "Aerogel"]
     raw_data = raw_data.drop(columns=['Final Gel Type'])
 
-    # # Remove paper that are 2 std above or below the average
-    # y_col_std = raw_data[y_column].std()
-    # y_col_mean = raw_data[y_column].mean()
-    # raw_data = raw_data.loc[raw_data[y_column] < y_col_mean + 2 * y_col_std]
-    # raw_data = raw_data.loc[raw_data[y_column] > y_col_mean - 2 * y_col_std]
-    #
-    # # Remove aerogels with high machine learning prediction error
-    # from neo4j import GraphDatabase
-    #
-    # uri = "neo4j://localhost:7687"
-    # username = "neo4j"
-    # password = "password"
-    # encrypted = False
-    # trust = "TRUST_ALL_CERTIFICATES"
-    # driver = GraphDatabase.driver(uri, auth=(username, password), encrypted=encrypted, trust=trust)
-    #
-    # not_outliers = []
-    # with driver.session(database="neo4j") as session:
-    #
-    #     query = f"""
-    #
-    #     MATCH (n:FinalGel)
-    #     WHERE n.ml_drop_error < 107 * 2
-    #     RETURN n.final_material as `final_material`
-    #
-    #     """
-    #
-    #     results = session.run(query).data()
-    #     for result in results:
-    #         not_outliers.append(result["final_material"])
-    #
-    # raw_data = raw_data[raw_data["Final Material"].isin(not_outliers)]
+    if "no_outliers" in filter_options and "control" not in filter_options:
+        raise ValueError("control must be included in filter options if no_outliers is used")
+    if "no_outliers" in filter_options:
+        filter_options.remove("no_outliers")
+        filter_options.append("no_outliers")
 
-    for _ in range(cycles):
+    valid_filter_options = ["control", "drop", "no_outliers"]
+    for filter_option in filter_options:
+        if filter_option not in valid_filter_options:
+            raise ValueError(f"Filter option of {filter_option} is not valid")
 
-        # Shuffle DataFrame
-        raw_data = raw_data.sample(frac=1)
-        raw_data = raw_data.reset_index(drop=True)
+    for filter_option in filter_options:
 
-        run_params(
-            base_df=raw_data,
-            aerogel_type=aerogel_type,
-            seed=seed,
-            y_column=y_column,
-            num_of_trials=num_of_trials,
-            train_percent=train_percent,
-            validation_percent=validation_percent,
-        )
+        working_dir = output_dir / filter_option
+        mkdir(working_dir)
+
+        if filter_option == "control":
+            # Just take copy of original data for a control group
+            filtered_data = raw_data.copy()
+        elif filter_option == "drop" or filter_option == "no_outliers":
+            # Remove paper that are 2 std above or below the average
+            y_col_std = raw_data[y_column].std()
+            y_col_mean = raw_data[y_column].mean()
+            filtered_data = raw_data.loc[raw_data[y_column] < y_col_mean + 2 * y_col_std]
+            filtered_data = filtered_data.loc[filtered_data[y_column] > y_col_mean - 2 * y_col_std]
+            if filter_option == "no_outliers":
+                # Fetch aerogels with low prediction error
+                drop_dir = output_dir / "drop"
+                drop_predictions = extract_predictions(output_dir=drop_dir, aerogel_type="si")
+                drop_predictions = drop_predictions[["Final Material", "error"]]
+                error_std = drop_predictions["error"].std()
+                error_mean = drop_predictions["error"].mean()
+                low_error_aerogels = drop_predictions.loc[drop_predictions["error"] < error_mean + 2 * error_std]
+                low_error_aerogels = low_error_aerogels.loc[low_error_aerogels["error"] > error_mean - 2 * error_std]
+                low_error_aerogels = low_error_aerogels["Final Material"].tolist()
+                # Filter raw data to only keep low error aerogels
+                filtered_data = filtered_data.loc[filtered_data["Final Material"].isin(low_error_aerogels)]
+        else:
+            raise ValueError(f"Filter option of {filter_option} is not valid")
+
+        for _ in range(cycles):
+
+            # Shuffle DataFrame
+            filtered_data = filtered_data.sample(frac=1)
+            filtered_data = filtered_data.reset_index(drop=True)
+
+            run_params(
+                base_df=filtered_data,
+                aerogel_type=aerogel_type,
+                seed=seed,
+                y_column=y_column,
+                num_of_trials=num_of_trials,
+                train_percent=train_percent,
+                validation_percent=validation_percent,
+                working_dir=working_dir,
+            )

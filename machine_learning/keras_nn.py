@@ -6,6 +6,34 @@ from keras.layers import Dropout, Dense
 
 
 def build_estimator(params):
+
+    """
+    Build a model object from keras from a dictionary of parameters formatted as
+
+    params = dict(
+        epochs=epochs_i,
+        n_hidden_layers=n_hidden_layers_i,
+        n_neurons=neurons_i,
+        dropout=dropouts_i,
+        )
+
+    Where the variable types in the param dict values are
+    epochs_i: int
+    n_hidden_layers_i: int
+    neurons_i: list[int]    |   Same length as n_hidden_layers_i
+    dropouts_i: list[int]   |   Same length as n_hidden_layers_i
+
+    Defaults in model builder
+    hidden layer activation = relu
+    output layer activation = linear
+    loss = mse
+    metrics = mse, mae
+    optimizer = Adam
+
+    :param params:
+    :return:
+    """
+
     model = Sequential()
     for i in range(params["n_hidden_layers"]):
         model.add(

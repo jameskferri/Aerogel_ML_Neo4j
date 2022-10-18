@@ -1,9 +1,5 @@
 #V-0.01
 
-# This file is just the skeleton of the schema file, and just shows the basic nodes and relationships
-# Do not insert this file into a Neo4j Database, it will run slow and give nothing useful
-# Core nodes are created for every Aerogel
-
 ### Final Gel ###
 
 Node|final_gel|FinalGel  # Core Node

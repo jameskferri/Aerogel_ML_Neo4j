@@ -111,16 +111,6 @@ def featurize(df, paper_id_column=None, bit_size=128):
             drop_columns.append(col)
     df = df.drop(columns=drop_columns)
 
-    # # Replace unknown temperature with room temperature (20 C)
-    # temp_columns = list(df.filter(regex="Temp").columns)
-    # for col in temp_columns:
-    #     df[col] = df[col].fillna(20)
-    #
-    # # Replace unknown pressure with ambient pressure (0.101325 mPa)
-    # pressure_columns = list(df.filter(regex="Pressure").columns)
-    # for col in pressure_columns:
-    #     df[col] = df[col].fillna(0.101325)
-
     # Replace NaN with mean of other columns
     for col in df:
         df[col] = df[col].fillna(df[col].mean())

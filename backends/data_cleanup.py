@@ -166,33 +166,3 @@ def fetch_si_ml_dataset(additional_drop_columns=None):
 
     return input_data
 
-
-def fetch_zr_ml_dataset(additional_drop_columns=None):
-    if additional_drop_columns is None:
-        additional_drop_columns = []
-
-    input_data = read_excel(Path(__file__).parent / "raw_zr_aerogels.xlsx", sheet_name="Comprehensive")
-
-    input_data["Final Material"] = input_data["Final Material"].str.strip()
-
-    input_data = input_data.drop(columns=additional_drop_columns)
-
-    title_col = input_data["Title"]
-    final_material_col = input_data["Final Material"]
-    input_data = input_data.drop(columns=["Title", "Final Material"])
-
-    # Gather columns to not delimit by commas
-    drop_columns = ['Author', 'Year', 'Cited References (#)', "Times Cited (#)"]
-    for column in input_data.columns:
-        if "notes" in column.lower() or 'title' in column.lower():
-            drop_columns.append(column)
-    input_data = input_data.drop(columns=drop_columns)
-
-    input_data = cleanup(df=input_data)
-    input_data['Final Gel Type'] = input_data['Drying Method'].apply(_parse)
-
-    input_data["Title"] = title_col
-    input_data["Final Material"] = final_material_col
-
-    return input_data
-

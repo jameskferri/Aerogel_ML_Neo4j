@@ -5,9 +5,6 @@ from io import BytesIO
 from tqdm import tqdm
 from numpy import nan, isnan
 from pandas import read_csv, DataFrame
-from neo4j import GraphDatabase
-import matplotlib.pyplot as plt
-import numpy as np
 
 
 def extract_predictions(output_dir: Path, aerogel_type):
@@ -183,13 +180,3 @@ def insert_error(df, driver, database, prop_key):
             """
 
             session.run(query)
-
-
-if __name__ == "__main__":
-
-    from pandas import read_excel
-
-    main_df = read_excel(Path(__file__).parent.parent / "backends/raw_si_aerogels.xlsx")
-    df = extract_predictions(Path(__file__).parent.parent / "si_no_outliers", aerogel_type="zr")
-
-    print(df.columns)
