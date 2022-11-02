@@ -30,13 +30,13 @@ if __name__ == "__main__":
         queries = dict(
             Surfactant=f"""
             MATCH (n:FinalGel)
-            WHERE n.{prop_key}_predicted_surface_area IS NOT NULL
+            WHERE n.{prop_key}_single_model_predicted_surface_area IS NOT NULL
             MATCH (n)-[]->(:Surfactant)
             RETURN n
             """,
             Surfactant_Ammon=f"""
             MATCH (n:FinalGel)
-            WHERE n.{prop_key}_predicted_surface_area IS NOT NULL
+            WHERE n.{prop_key}_single_model_predicted_surface_area IS NOT NULL
             MATCH (n)-[]->(:Surfactant)
             MATCH (n)-[]->(b:BaseCatalyst)
             WHERE b.name = "NH4OH"
@@ -44,27 +44,22 @@ if __name__ == "__main__":
             """,
             Base_Catalyst=f"""
             MATCH (n:FinalGel)
-            WHERE n.{prop_key}_predicted_surface_area IS NOT NULL
+            WHERE n.{prop_key}_single_model_predicted_surface_area IS NOT NULL
             MATCH (n)-[]->(:BaseCatalyst)
             RETURN n
             """,
             Supercritical_Drying=f"""
             MATCH (n:FinalGel)
-            WHERE n.{prop_key}_predicted_surface_area IS NOT NULL
+            WHERE n.{prop_key}_single_model_predicted_surface_area IS NOT NULL
             MATCH (n)-[]->(:Surfactant)
             WHERE (n)-[]->(:DryingSteps)-[]->(:DryingMethod {"{"}method: "Supercritical Drying"{"}"})
             RETURN n
             """,
             Ambient_Pressure=f"""
             MATCH (n:FinalGel)
-            WHERE n.{prop_key}_predicted_surface_area IS NOT NULL
+            WHERE n.{prop_key}_single_model_predicted_surface_area IS NOT NULL
             MATCH (n)-[]->(:Surfactant)
             WHERE (n)-[]->(:DryingSteps)-[]->(:DryingMethod {"{"}method: "Ambient Pressure Drying"{"}"})
-            RETURN n
-            """,
-            All=f"""
-            MATCH (n:FinalGel)
-            WHERE n.{prop_key}_predicted_surface_area IS NOT NULL
             RETURN n
             """
         )

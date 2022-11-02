@@ -124,20 +124,21 @@ def insert_errors(df, driver, database, prop_key):
             session.run(query)
 
 
-def insert_predicted_values(df, driver, database, prop_key):
+def insert_predicted_values(df, driver, database, model_path, prop_key):
 
     with driver.session(database=database) as session:
 
         for index, row in tqdm(df.iterrows(), desc="Inserting Predictions"):
 
             final_material = row["Final Material"]
-            pred = row["pred"]
+            pred = row["pred_avg"]
 
             query = f"""
 
             MATCH (l:FinalGel)
             WHERE l.final_material = "{final_material}"
             SET l.{prop_key} = {pred}
+            SET l.{prop_key}_model_path = "{model_path}"
 
             """
 

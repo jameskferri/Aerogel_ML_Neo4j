@@ -1,4 +1,6 @@
 from pathlib import Path
+from os import mkdir
+from os.path import exists
 
 from machine_learning.run import run
 
@@ -6,7 +8,7 @@ from machine_learning.run import run
 if __name__ == "__main__":
 
     # General Properties for Machine Learning
-    num_of_trials = 30  # For hyper-tuning
+    num_of_trials = 10  # For hyper-tuning
     train_percent = 0.8
     validation_percent = 0.1
 
@@ -21,6 +23,10 @@ if __name__ == "__main__":
     filter_options = ["control", "no_outliers", "drop"]
 
     output_dir = Path("output")
+
+    if exists(output_dir):
+        raise OSError("output directory already exists")
+    mkdir(output_dir)
 
     run(aerogel_type="si",
         cycles=cycles,

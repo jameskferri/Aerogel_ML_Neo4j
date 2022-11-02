@@ -5,7 +5,7 @@ from os import mkdir, getcwd, listdir
 from os.path import exists
 
 
-def zip_run_name_files(run_name, output_dir):
+def zip_run_name_files(run_name, output_dir, zip_dir):
 
     # Make sure a si_no_outliers directory exist
     if not exists(output_dir):
@@ -24,7 +24,6 @@ def zip_run_name_files(run_name, output_dir):
             move(current_dir / f, working_dir / f)
 
     # Zip the new directory
-    make_archive(working_dir, 'zip', working_dir)
-
-    # Delete the non-zipped directory
-    rmtree(working_dir)
+    if zip_dir:
+        make_archive(working_dir, 'zip', working_dir)
+        rmtree(working_dir)

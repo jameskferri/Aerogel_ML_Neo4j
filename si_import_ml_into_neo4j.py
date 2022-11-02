@@ -1,9 +1,10 @@
 from pathlib import Path
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 from neo4j import GraphDatabase
 
 from backends.data_cleanup import fetch_si_neo4j_dataset
-from neo4j_backends.predictions import extract_predictions, insert_paper_error, insert_errors, insert_predicted_values, insert_predicted_std_values
+from neo4j_backends.predictions import extract_predictions, insert_paper_error, insert_errors
+from neo4j_backends.predictions import insert_predicted_values, insert_predicted_std_values
 from neo4j_backends.si_insert_base import merge_schema
 
 
@@ -47,8 +48,23 @@ def main():
 
         insert_paper_error(new_df, driver, database, prop_key=f"{filter_option}_paper_error")
         insert_errors(new_df, driver, database, prop_key=f"{filter_option}_outliers_error")
-        insert_predicted_values(new_df, driver, database, prop_key=f"{filter_option}_predicted_surface_area")
-        insert_predicted_std_values(new_df, driver, database, prop_key=f"{filter_option}_predicted_surface_area_std")
+
+        new_df = new_df.rename(columns={"pred": "pred_avg"})
+        insert_predicted_values(new_df, driver, database, model_path=f"model/{filter_option}",
+                                prop_key=f"{filter_option}_predicted_surface_area")
+        insert_predicted_std_values(new_df, driver, database,
+                                    prop_key=f"{filter_option}_predicted_surface_area_std")
+
+        # Insert predictions
+        model_dir = Path("model") / filter_option
+        for directory in model_dir.iterdir():
+            for file in directory.iterdir():
+                if "predictions" in file.stem:
+                    true_pva = read_csv(file)
+                    insert_predicted_values(true_pva, driver, database, model_path=f"model/{filter_option}",
+                                            prop_key=f"{filter_option}_single_model_predicted_surface_area")
+                    insert_predicted_std_values(true_pva, driver, database,
+                                                prop_key=f"{filter_option}_single_model_predicted_surface_area_std")
 
 
 if __name__ == "__main__":

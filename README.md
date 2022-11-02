@@ -24,13 +24,14 @@ This will create a conda virtual environment named
 ## Workflow
 
 This repo has three main files:
-- si_ml_run.py : Generate ml results
-- si_neo4j_run.py : Insert data into Neo4j
+- si_cleanup_database.py : Runs initial models to cleanup data
+- si_generate_model.py : Generates a models for each filter type
+- si_import_ml_into_neo4j.py : Inserts data into Neo4j
 - pva_from_neo4j.py : Grab PVA graphs from Neo4j
 
 Where the files should be run in the order
 
-si_ml_run.py -> si_neo4j_run.py -> pva_from_neo4j.py
+si_cleanup_database.py -> si_generate_model.py -> si_import_ml_into_neo4j.py -> pva_from_neo4j.py
 
 ## Neo4j Python Driver
 
