@@ -27,16 +27,26 @@ if __name__ == "__main__":
 
     y_column = 'Surface Area (m2/g)'
     material_col = "Final Material"
-    seed = int.from_bytes(urandom(3), "big")  # Generate an actual random number
-    test_split = 0.2
+    seed = None
+    test_split = 0.1
 
     # Generating training data
     raw_data = raw_data.dropna(subset=[y_column])
     raw_data = raw_data.loc[raw_data['Final Gel Type'] == "Aerogel"]
     raw_data = raw_data.drop(columns=['Final Gel Type'])
+
     raw_data = raw_data.sample(frac=1, random_state=seed)
     raw_data = raw_data.reset_index(drop=True)
+    end_split = int(len(raw_data) * test_split)
 
+    # Train the control model
+    mkdir(model_dir / "control")
+    train_model(raw_data, y_column, material_col, aerogel_type="si", num_of_trials=10,
+                start_test_split=0, end_test_split=end_split, validation_percent=0.1,
+                seed=seed, working_dir=model_dir / "control", save_model=True, zip_dir=False)
+
+    raw_data = raw_data.sample(frac=1, random_state=seed)
+    raw_data = raw_data.reset_index(drop=True)
     end_split = int(len(raw_data) * test_split)
 
     # Fetch aerogels that are in no_outliers dataset
@@ -47,15 +57,13 @@ if __name__ == "__main__":
 
     # Train no outliers model
     mkdir(model_dir / "no_outliers")
-    train_model(no_out_df, y_column, material_col, aerogel_type="si", num_of_trials=50,
+    train_model(no_out_df, y_column, material_col, aerogel_type="si", num_of_trials=10,
                 start_test_split=0, end_test_split=end_split, validation_percent=0.1,
                 seed=seed, working_dir=model_dir / "no_outliers", save_model=True, zip_dir=False)
 
-    # Train the control model
-    mkdir(model_dir / "control")
-    train_model(raw_data, y_column, material_col, aerogel_type="si", num_of_trials=trials,
-                start_test_split=0, end_test_split=end_split, validation_percent=0.1,
-                seed=seed, working_dir=model_dir / "control", save_model=True, zip_dir=False)
+    raw_data = raw_data.sample(frac=1, random_state=seed)
+    raw_data = raw_data.reset_index(drop=True)
+    end_split = int(len(raw_data) * test_split)
 
     # Fetch aerogels that are in no_outliers dataset
     drop_dir = Path("output/drop")
@@ -65,7 +73,7 @@ if __name__ == "__main__":
 
     # Train drop model
     mkdir(model_dir / "drop")
-    train_model(drop_df, y_column, material_col, aerogel_type="si", num_of_trials=trials,
+    train_model(drop_df, y_column, material_col, aerogel_type="si", num_of_trials=10,
                 start_test_split=0, end_test_split=end_split, validation_percent=0.1,
                 seed=seed, working_dir=model_dir / "drop", save_model=True, zip_dir=False)
 

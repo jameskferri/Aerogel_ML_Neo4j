@@ -51,8 +51,7 @@ if __name__ == "__main__":
             Supercritical_Drying=f"""
             MATCH (n:FinalGel)
             WHERE n.{prop_key}_single_model_predicted_surface_area IS NOT NULL
-            MATCH (n)-[]->(:Surfactant)
-            WHERE (n)-[]->(:DryingSteps)-[]->(:DryingMethod {"{"}method: "Supercritical Drying"{"}"})
+            MATCH (n)-[]->(:DryingSteps)-[]->(:DryingMethod {"{"}method: "Supercritical Drying"{"}"})
             RETURN n
             """,
             Ambient_Pressure=f"""
@@ -60,6 +59,11 @@ if __name__ == "__main__":
             WHERE n.{prop_key}_single_model_predicted_surface_area IS NOT NULL
             MATCH (n)-[]->(:Surfactant)
             WHERE (n)-[]->(:DryingSteps)-[]->(:DryingMethod {"{"}method: "Ambient Pressure Drying"{"}"})
+            RETURN n
+            """,
+            All=f"""
+            MATCH (n:FinalGel)
+            WHERE n.{prop_key}_single_model_predicted_surface_area IS NOT NULL
             RETURN n
             """
         )
@@ -87,20 +91,23 @@ if __name__ == "__main__":
 
             pva = DataFrame(pva)
 
-            pva["predicted_sa_std"] = pva["predicted_sa_std"].abs()
+            # Verify that at least 5 aerogels are in subregion
+            if len(pva) > 2:
 
-            max_sa, min_sa = pva["surface_area"].max(), pva["surface_area"].min()
-            max_std_sa, min_std_sa = pva["predicted_sa_std"].max(), pva["predicted_sa_std"].min()
+                pva["predicted_sa_std"] = pva["predicted_sa_std"].abs()
 
-            pva["surface_area"] = (pva["surface_area"] - min_sa) / (max_sa - min_sa)
-            pva["predicted_sa"] = (pva["predicted_sa"] - min_sa) / (max_sa - min_sa)
-            pva["predicted_sa_std"] = (pva["predicted_sa_std"] - min_std_sa) / (max_std_sa - min_std_sa)
+                max_sa, min_sa = pva["surface_area"].max(), pva["surface_area"].min()
+                max_std_sa, min_std_sa = pva["predicted_sa_std"].max(), pva["predicted_sa_std"].min()
 
-            mse = mean_squared_error(pva["surface_area"], pva["predicted_sa"]).mean()
-            rmse = mse ** (1 / 2)
-            r2 = r2_score(pva["surface_area"], pva["predicted_sa"]).mean()
+                pva["surface_area"] = (pva["surface_area"] - min_sa) / (max_sa - min_sa)
+                pva["predicted_sa"] = (pva["predicted_sa"] - min_sa) / (max_sa - min_sa)
+                pva["predicted_sa_std"] = (pva["predicted_sa_std"] - min_std_sa) / (max_std_sa - min_std_sa)
 
-            pva_graph(pva.rename(columns={"surface_area": "actual",
-                                          "predicted_sa": "pred_avg",
-                                          "predicted_sa_std": "pred_std"}),
-                      r2, mse, rmse, run_name=f"PVA Output/{prop_key}_{key}")
+                mse = mean_squared_error(pva["surface_area"], pva["predicted_sa"]).mean()
+                rmse = mse ** (1 / 2)
+                r2 = r2_score(pva["surface_area"], pva["predicted_sa"]).mean()
+
+                pva_graph(pva.rename(columns={"surface_area": "actual",
+                                              "predicted_sa": "pred_avg",
+                                              "predicted_sa_std": "pred_std"}),
+                          r2, mse, rmse, run_name=f"PVA Output/{prop_key}_{key}")
