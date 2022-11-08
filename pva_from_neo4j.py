@@ -57,8 +57,7 @@ if __name__ == "__main__":
             Ambient_Pressure=f"""
             MATCH (n:FinalGel)
             WHERE n.{prop_key}_single_model_predicted_surface_area IS NOT NULL
-            MATCH (n)-[]->(:Surfactant)
-            WHERE (n)-[]->(:DryingSteps)-[]->(:DryingMethod {"{"}method: "Ambient Pressure Drying"{"}"})
+            MATCH (n)-[]->(:DryingSteps)-[]->(:DryingMethod {"{"}method: "Ambient Pressure Drying"{"}"})
             RETURN n
             """,
             All=f"""
