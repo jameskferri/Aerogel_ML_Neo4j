@@ -7,30 +7,6 @@ from sklearn.preprocessing import StandardScaler
 from backends.data_cleanup import fetch_si_ml_dataset
 from machine_learning.featurize import featurize, DataFrame
 from machine_learning.keras_nn import tune, build_estimator
-from neo4j_backends.predictions import extract_predictions
-
-
-def filter_data(df, y_col):
-
-    # Fetch aerogels with low prediction error
-    y_col_std = df[y_col].std()
-    y_col_mean = df[y_col].mean()
-    filtered_data = df.loc[df[y_col] < y_col_mean + 2 * y_col_std]
-    filtered_data = filtered_data.loc[filtered_data[y_col] > y_col_mean - 2 * y_col_std]
-
-    drop_dir = Path("output/drop")
-    drop_predictions = extract_predictions(output_dir=drop_dir, aerogel_type="si")
-    drop_predictions = drop_predictions[["Final Material", "error"]]
-    error_std = drop_predictions["error"].std()
-    error_mean = drop_predictions["error"].mean()
-    low_error_aerogels = drop_predictions.loc[drop_predictions["error"] < error_mean + 2 * error_std]
-    low_error_aerogels = low_error_aerogels.loc[low_error_aerogels["error"] > error_mean - 2 * error_std]
-    low_error_aerogels = low_error_aerogels["Final Material"].tolist()
-
-    # Filter raw data to only keep low error aerogels
-    filtered_data = filtered_data.loc[filtered_data["Final Material"].isin(low_error_aerogels)]
-
-    return filtered_data
 
 
 if __name__ == "__main__":
@@ -42,7 +18,7 @@ if __name__ == "__main__":
     y_column = 'Surface Area (m2/g)'
     material_col = "Final Material"
 
-    num_of_trials = 1
+    num_of_trials = 100
     validation_percent = 0.1
     n_hidden = list(range(0, 10))
     neurons = list(range(10, 200, 10))
@@ -68,9 +44,8 @@ if __name__ == "__main__":
     # Filter data, remove outliers
     test_data = all_data.tail(len(test_data))
     training_data = all_data.drop(all_data.tail(len(test_data)).index)
-    training_data = filter_data(training_data, y_column)
 
-    test_materials = test_data["Final Material"]
+    test_materials = test_data["Final Material"].tolist()
 
     training_data = training_data.drop(columns=["Final Material"])
     test_data = test_data.drop(columns=["Final Material"])
@@ -96,6 +71,7 @@ if __name__ == "__main__":
     feature_scaler = StandardScaler()
     train_features = feature_scaler.fit_transform(train_features)
     val_features = feature_scaler.transform(val_features)
+    test_features = feature_scaler.transform(test_features)
 
     # Scale Target
     target_scaler = StandardScaler()
@@ -113,7 +89,9 @@ if __name__ == "__main__":
         predictions_j = estimator.predict(test_features)
         predictions_j = target_scaler.inverse_transform(predictions_j.reshape(-1, 1)).reshape(-1, )
         predictions[f"predictions_{j}"] = predictions_j
+    predictions["pred_avg"] = predictions.mean(axis=1)
+    predictions["pred_std"] = predictions.std(axis=1)
 
     predictions["Final Material"] = test_materials
 
-    predictions.to_csv("output.csv")
+    predictions.to_csv("output.csv", index=False)
