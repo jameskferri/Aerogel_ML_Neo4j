@@ -137,11 +137,13 @@ def fetch_si_neo4j_dataset():
     return input_data
 
 
-def fetch_si_ml_dataset(additional_drop_columns=None):
+def fetch_si_ml_dataset(additional_drop_columns=None, input_data=None):
+
     if additional_drop_columns is None:
         additional_drop_columns = []
 
-    input_data = read_excel(Path(__file__).parent / "raw_si_aerogels.xlsx", sheet_name="Comprehensive")
+    if input_data is None:
+        input_data = read_excel(Path(__file__).parent / "raw_si_aerogels.xlsx", sheet_name="Comprehensive")
 
     input_data["Final Material"] = input_data["Final Material"].str.strip()
 
