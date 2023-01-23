@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from numpy import arange
+from numpy import arange, nan
 from pandas import read_excel, read_csv, concat
 from sklearn.preprocessing import StandardScaler
 
@@ -13,14 +13,15 @@ if __name__ == "__main__":
 
     # Verify in test_data that y_column is set to 0
     training_data = read_excel(Path("backends/raw_si_aerogels.xlsx"), sheet_name="Comprehensive")
-    test_data = read_csv(Path("backends/Si Aerogel Expt Recipe Trial 2_01.20.23.csv"))
+    test_data = read_csv(Path("backends/Si Aerogel Expt Recipe Trial 3_01.22.23.csv"))
 
     y_column = 'Surface Area (m2/g)'
     material_col = "Final Material"
 
-    num_of_trials = 100
+    num_of_trials = 1
     validation_percent = 0.1
     n_hidden = list(range(0, 10))
+    # n_hidden = list(range(5, 6))
     neurons = list(range(10, 200, 10))
     drop = list(arange(0.15, 0.4, 0.02))
     epochs = [100]
@@ -37,7 +38,7 @@ if __name__ == "__main__":
     all_data = concat([training_data, test_data], ignore_index=True, axis=0)
     all_data = fetch_si_ml_dataset(additional_drop_columns=drop_columns, input_data=all_data)
 
-    all_data = all_data.dropna(subset=[y_column])
+    all_data = all_data.loc[all_data[y_column] != nan]
     all_data = all_data.loc[all_data['Final Gel Type'] == "Aerogel"]
     all_data = all_data.drop(columns=['Final Gel Type', "Title"])
 
