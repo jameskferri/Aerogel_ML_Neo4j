@@ -18,10 +18,9 @@ if __name__ == "__main__":
     y_column = 'Surface Area (m2/g)'
     material_col = "Final Material"
 
-    num_of_trials = 1
+    num_of_trials = 10
     validation_percent = 0.1
     n_hidden = list(range(0, 10))
-    # n_hidden = list(range(5, 6))
     neurons = list(range(10, 200, 10))
     drop = list(arange(0.15, 0.4, 0.02))
     epochs = [100]
