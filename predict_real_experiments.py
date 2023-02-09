@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     # Verify in test_data that y_column is set to 0
     training_data = read_excel(Path("backends/raw_si_aerogels.xlsx"), sheet_name="Comprehensive")
-    test_data = read_csv(Path("backends/Si Aerogel Expt Recipe Trial 3_01.22.23.csv"))
+    test_data = read_csv(Path("backends/Si Aerogel Expt Recipe Trial 4_01.28.23.csv"))
 
     y_column = 'Surface Area (m2/g)'
     material_col = "Final Material"
