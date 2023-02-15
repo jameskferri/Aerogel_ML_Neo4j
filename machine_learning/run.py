@@ -224,7 +224,6 @@ def run(aerogel_type, cycles, num_of_trials, train_percent, validation_percent, 
                 error_std = drop_predictions["error"].std()
                 error_mean = drop_predictions["error"].mean()
                 low_error_aerogels = drop_predictions.loc[drop_predictions["error"] < error_mean + 2 * error_std]
-                low_error_aerogels = low_error_aerogels.loc[low_error_aerogels["error"] > error_mean - 2 * error_std]
                 low_error_aerogels = low_error_aerogels["Final Material"].tolist()
                 # Filter raw data to only keep low error aerogels
                 filtered_data = filtered_data.loc[filtered_data["Final Material"].isin(low_error_aerogels)]
