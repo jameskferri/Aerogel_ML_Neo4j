@@ -33,6 +33,8 @@ Where the files should be run in the order
 
 si_cleanup_database.py -> si_generate_model.py -> si_import_ml_into_neo4j.py -> pva_from_neo4j.py
 
+If a user only wishes to predict real experimental data, and outline has been shown in predict_real_experiments.py.
+
 ## Neo4j Python Driver
 
 In si_neo4j_run.py and pva_from_neo4j.py,
